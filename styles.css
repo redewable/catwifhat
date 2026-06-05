@@ -371,6 +371,70 @@ a { color: inherit; text-decoration: none; }
 .stat__label { font-size: 0.9rem; opacity: 0.75; }
 
 /* ============================================================
+   6b. TRADE  (Jupiter swap + DexScreener chart)
+   ============================================================ */
+.trade {
+  padding: clamp(3.5rem, 8vw, 6rem) 0;
+  background: var(--cream-d);
+}
+.trade__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  gap: 1.6rem;
+  align-items: stretch;
+}
+.trade__panel {
+  background: var(--white);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  box-shadow: var(--shadow);
+  display: flex;
+  flex-direction: column;
+}
+.trade__panel-title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.3rem;
+  margin-bottom: 1rem;
+}
+/* Buy panel buttons */
+.buybox {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+  margin: 0.5rem 0 0.4rem;
+}
+.buybox__btn {
+  width: 100%;
+  text-align: center;
+  font-size: 1.05rem;
+  padding: 1rem 1.4rem;
+}
+/* DexScreener responsive iframe */
+.trade__chart {
+  position: relative;
+  width: 100%;
+  flex: 1;
+  min-height: 480px;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #0b0e16;
+}
+.trade__chart iframe {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+.trade__note {
+  font-size: 0.85rem;
+  opacity: 0.7;
+  margin-top: 0.9rem;
+}
+.trade__note a { color: var(--blue); font-weight: 600; }
+
+/* ============================================================
    7. CONTRACT BAR
    ============================================================ */
 .contract { padding: 0 0 clamp(3rem, 7vw, 5rem); }
@@ -469,6 +533,7 @@ a { color: inherit; text-decoration: none; }
   .about__cols { grid-template-columns: 1fr; gap: 1.4rem; }
   .how__grid { grid-template-columns: repeat(2, 1fr); }
   .stats { grid-template-columns: repeat(2, 1fr); }
+  .trade__grid { grid-template-columns: 1fr; }
 
   .nav__burger { display: flex; }
   .nav__cta { margin-left: auto; }

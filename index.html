@@ -6,10 +6,17 @@
   <title>catwifhat ($WIF) — one hat. one cat. zero plans.</title>
   <meta name="description" content="catwifhat ($WIF) — a Solana meme token. A ginger cat in a hand-knit blue beanie. The feline answer to a very famous dog. No utility. No roadmap. Just the hat." />
 
+  <!-- Mobile browser chrome color (the hat blue) -->
+  <meta name="theme-color" content="#2E5FD8" />
+
+  <!-- Favicons (generated from the cat) -->
+  <link rel="icon" type="image/png" href="favicon.png" />
+  <link rel="apple-touch-icon" href="apple-touch-icon.png" />
+
   <!-- Open Graph / social preview -->
   <meta property="og:title" content="catwifhat ($WIF)" />
   <meta property="og:description" content="every dog had its day. now the cat's got a hat." />
-  <meta property="og:image" content="hero-cat.png" />
+  <meta property="og:image" content="hero-cat.jpg" />
   <meta property="og:type" content="website" />
   <meta name="twitter:card" content="summary_large_image" />
 
@@ -33,6 +40,7 @@
         <a href="#about">About</a>
         <a href="#how-to-buy">How to Buy</a>
         <a href="#tokenomics">Tokenomics</a>
+        <a href="#trade">Trade</a>
         <a href="https://t.me/catwifhat_USDC" target="_blank" rel="noopener">TG</a>
         <!-- PLACEHOLDER: X / Twitter URL not yet available -->
         <a href="#" target="_blank" rel="noopener" data-placeholder="x-url">X</a>
@@ -61,7 +69,7 @@
            class="btn btn--blue" target="_blank" rel="noopener">Buy on pump.fun</a>
         <button class="btn btn--ghost" data-copy-ca>Copy Contract</button>
         <!-- PFP movement: downloads the hero image so holders can rep the cat -->
-        <a href="hero-cat.png" download="catwifhat-pfp.png" class="btn btn--ginger">Make it your PFP</a>
+        <a href="catwifhat-pfp.png" download="catwifhat-pfp.png" class="btn btn--ginger">Make it your PFP</a>
       </div>
       <p class="hero__ticker">Ticker: <strong>$WIF</strong> · Pair: <strong>USDC</strong> · Solana</p>
     </div>
@@ -70,8 +78,9 @@
   <!-- Full-bleed wide banner — shows the whole beanie-and-wall composition, no crop.
        Easter egg: clicking the cat triggers a wobble + "meow" burst. -->
   <figure class="hero__banner reveal">
-    <img src="hero-cat.png" alt="A ginger cat wearing a chunky royal-blue knitted beanie against a warm beige wall"
-         class="hero__cat" id="hero-cat" width="1300" height="426" />
+    <img src="hero-cat.jpg" alt="A ginger cat wearing a chunky royal-blue knitted beanie against a warm beige wall"
+         class="hero__cat" id="hero-cat" width="1290" height="428"
+         fetchpriority="high" decoding="async" />
   </figure>
 
   <!-- ============================================================
@@ -166,6 +175,51 @@
           <span class="stat__value" data-placeholder="contract-status">Unverified</span>
           <span class="stat__label">Contract status — verify on Solscan</span>
         </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       6b. TRADE — live Jupiter swap + DexScreener chart
+       Both pull REAL on-chain data. They populate once $WIF is live
+       and routable; until then they may show "no routes"/"no data",
+       which is expected and honest — pump.fun stays the primary CTA.
+       ============================================================ -->
+  <section class="trade" id="trade">
+    <div class="section__wrap">
+      <h2 class="section__title reveal">Trade $WIF</h2>
+      <div class="trade__grid">
+
+        <div class="trade__panel reveal">
+          <h3 class="trade__panel-title">Buy $WIF</h3>
+          <div class="buybox">
+            <a class="btn btn--blue buybox__btn"
+               href="https://pump.fun/Hjj93YiyaFYY8zY2EW6FM2i2gd4rxzhoLCLFabrRpump"
+               target="_blank" rel="noopener">Buy on pump.fun ↗</a>
+            <!-- Opens Jupiter's hosted swap with USDC → $WIF preset (Jupiter handles its own RPC) -->
+            <a class="btn btn--ghost buybox__btn"
+               href="https://jup.ag/swap/USDC-Hjj93YiyaFYY8zY2EW6FM2i2gd4rxzhoLCLFabrRpump"
+               target="_blank" rel="noopener">Swap on Jupiter ↗</a>
+          </div>
+          <p class="trade__note">
+            pump.fun is the home base while $WIF is on the bonding curve. Jupiter
+            routes automatically once there's on-chain liquidity. Always confirm
+            the contract address before you swap.
+          </p>
+        </div>
+
+        <div class="trade__panel reveal">
+          <h3 class="trade__panel-title">Live chart</h3>
+          <div class="trade__chart">
+            <!-- Real DexScreener embed — live price / market cap / volume -->
+            <iframe title="DexScreener $WIF chart" loading="lazy"
+              src="https://dexscreener.com/solana/Hjj93YiyaFYY8zY2EW6FM2i2gd4rxzhoLCLFabrRpump?embed=1&theme=dark&trades=0&info=0"></iframe>
+          </div>
+          <p class="trade__note">
+            Live data from DexScreener — appears once a trading pair exists.
+          </p>
+        </div>
+
       </div>
     </div>
   </section>
