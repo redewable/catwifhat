@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>catwifhat ($WIF) — one hat. one cat. zero plans.</title>
+  <meta name="description" content="catwifhat ($WIF) — a Solana meme token. A ginger cat in a hand-knit blue beanie. The feline answer to a very famous dog. No utility. No roadmap. Just the hat." />
+
+  <!-- Open Graph / social preview -->
+  <meta property="og:title" content="catwifhat ($WIF)" />
+  <meta property="og:description" content="every dog had its day. now the cat's got a hat." />
+  <meta property="og:image" content="hero-cat.jpeg" />
+  <meta property="og:type" content="website" />
+  <meta name="twitter:card" content="summary_large_image" />
+
+  <!-- Fonts: Fraunces (chunky display) + Inter (clean body) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700;9..144,900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+  <!-- ============================================================
+       1. STICKY NAV
+       ============================================================ -->
+  <header class="nav" id="top">
+    <div class="nav__inner">
+      <a href="#top" class="nav__brand">catwifhat</a>
+
+      <nav class="nav__links" aria-label="Primary">
+        <a href="#about">About</a>
+        <a href="#how-to-buy">How to Buy</a>
+        <a href="#tokenomics">Tokenomics</a>
+        <a href="https://t.me/catwifhat_USDC" target="_blank" rel="noopener">TG</a>
+        <!-- PLACEHOLDER: X / Twitter URL not yet available -->
+        <a href="#" target="_blank" rel="noopener" data-placeholder="x-url">X</a>
+      </nav>
+
+      <a href="https://pump.fun/Hjj93YiyaFYY8zY2EW6FM2i2gd4rxzhoLCLFabrRpump"
+         class="btn btn--blue nav__cta" target="_blank" rel="noopener">Buy $WIF</a>
+
+      <!-- Mobile menu toggle -->
+      <button class="nav__burger" id="burger" aria-label="Toggle menu" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </header>
+
+  <!-- ============================================================
+       2. HERO  (text block, then full-bleed wide banner)
+       ============================================================ -->
+  <section class="hero">
+    <div class="hero__text reveal">
+      <h1 class="hero__title">catwifhat</h1>
+      <p class="hero__tagline">every dog had its day. now the cat's got a hat.</p>
+      <p class="hero__sub">one hat. one cat. zero plans.</p>
+      <div class="hero__buttons">
+        <a href="https://pump.fun/Hjj93YiyaFYY8zY2EW6FM2i2gd4rxzhoLCLFabrRpump"
+           class="btn btn--blue" target="_blank" rel="noopener">Buy on pump.fun</a>
+        <button class="btn btn--ghost" data-copy-ca>Copy Contract</button>
+        <!-- PFP movement: downloads the hero image so holders can rep the cat -->
+        <a href="hero-cat.jpeg" download="catwifhat-pfp.jpeg" class="btn btn--ginger">Make it your PFP</a>
+      </div>
+      <p class="hero__ticker">Ticker: <strong>$WIF</strong> · Pair: <strong>USDC</strong> · Solana</p>
+    </div>
+  </section>
+
+  <!-- Full-bleed wide banner — shows the whole beanie-and-wall composition, no crop.
+       Easter egg: clicking the cat triggers a wobble + "meow" burst. -->
+  <figure class="hero__banner reveal">
+    <img src="hero-cat.jpeg" alt="A ginger cat wearing a chunky royal-blue knitted beanie against a warm beige wall"
+         class="hero__cat" id="hero-cat" width="1300" height="426" />
+  </figure>
+
+  <!-- ============================================================
+       3. MANIFESTO STRIP
+       ============================================================ -->
+  <section class="manifesto reveal">
+    <p class="manifesto__text">
+      Let's end things how they started.<br />
+      Two years ago, the dog revived the trenches and lit up Solana.<br />
+      Now the chain feels dead and everything's bleeding to zero.<br />
+      So it's time to run it back. New era. New PFP. Same energy.<br />
+      <span class="manifesto__sig">catwifhat.</span>
+    </p>
+  </section>
+
+  <!-- ============================================================
+       4. ABOUT
+       ============================================================ -->
+  <section class="about" id="about">
+    <div class="section__wrap">
+      <h2 class="section__title reveal">The whole story</h2>
+      <div class="about__cols">
+        <p class="reveal">This is a cat. He is wearing a hat. The hat is blue. We are not sure he
+          agreed to any of this, but he has stopped resisting, and frankly so have we.</p>
+        <p class="reveal">catwifhat is the feline answer to a very famous dog. No utility. No
+          roadmap. No quarterly investor call where someone says "synergy." Just a
+          ginger cat in a hand-knit beanie staring directly into your portfolio.</p>
+        <p class="reveal">If you're looking for fundamentals, the fundamental is the hat. If you're
+          looking for a reason, the reason is the hat. Welcome to the litter.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       5. HOW TO BUY
+       ============================================================ -->
+  <section class="how" id="how-to-buy">
+    <div class="section__wrap">
+      <h2 class="section__title reveal">How to buy</h2>
+      <div class="how__grid">
+        <article class="card reveal">
+          <span class="card__icon" aria-hidden="true">👛</span>
+          <span class="card__num">1</span>
+          <h3>Get a wallet</h3>
+          <p>Download Phantom. It's free, it's clean, the cat approves.</p>
+        </article>
+        <article class="card reveal">
+          <span class="card__icon" aria-hidden="true">💰</span>
+          <span class="card__num">2</span>
+          <h3>Fund it</h3>
+          <p>Load up with SOL or USDC. The pair runs on USDC, keep some handy.</p>
+        </article>
+        <article class="card reveal">
+          <span class="card__icon" aria-hidden="true">🐱</span>
+          <span class="card__num">3</span>
+          <h3>Buy the cat</h3>
+          <p>Grab $WIF on pump.fun, or swap on Jupiter. Paste the CA, double-check it, ape responsibly.</p>
+        </article>
+        <article class="card reveal">
+          <span class="card__icon" aria-hidden="true">🧢</span>
+          <span class="card__num">4</span>
+          <h3>Wear the hat</h3>
+          <p>You're in. Hold the line. Post the cat. Touch grass occasionally.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       6. TOKENOMICS
+       ============================================================ -->
+  <section class="tokenomics" id="tokenomics">
+    <div class="section__wrap">
+      <h2 class="section__title reveal">Tokenomics</h2>
+      <div class="stats reveal">
+        <div class="stat">
+          <!-- PLACEHOLDER: confirm total supply against pump.fun -->
+          <span class="stat__value">1,000,000,000</span>
+          <span class="stat__label">Total Supply</span>
+        </div>
+        <div class="stat">
+          <span class="stat__value">0 / 0</span>
+          <span class="stat__label">Tax — no buy, no sell</span>
+        </div>
+        <div class="stat">
+          <!-- PLACEHOLDER: confirm honest liquidity status -->
+          <span class="stat__value">Bonding curve</span>
+          <span class="stat__label">Liquidity — on pump.fun</span>
+        </div>
+        <div class="stat">
+          <!-- PLACEHOLDER: only say "Renounced" if verified true on Solscan -->
+          <span class="stat__value" data-placeholder="contract-status">Unverified</span>
+          <span class="stat__label">Contract status — verify on Solscan</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       7. CONTRACT BAR
+       ============================================================ -->
+  <section class="contract">
+    <div class="section__wrap">
+      <div class="contract__bar reveal">
+        <span class="contract__label">Contract Address</span>
+        <code class="contract__ca" id="ca-text">Hjj93YiyaFYY8zY2EW6FM2i2gd4rxzhoLCLFabrRpump</code>
+        <button class="btn btn--blue contract__copy" data-copy-ca>Copy</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       8. FOOTER
+       ============================================================ -->
+  <footer class="footer">
+    <div class="section__wrap">
+      <div class="footer__socials">
+        <!-- PLACEHOLDER: X / Twitter URL not yet available -->
+        <a href="#" target="_blank" rel="noopener" data-placeholder="x-url">X / Twitter</a>
+        <a href="https://t.me/catwifhat_USDC" target="_blank" rel="noopener">Telegram</a>
+        <a href="https://dexscreener.com/solana/Hjj93YiyaFYY8zY2EW6FM2i2gd4rxzhoLCLFabrRpump"
+           target="_blank" rel="noopener">DexScreener</a>
+      </div>
+
+      <p class="footer__disclaimer">
+        catwifhat ($WIF) is a meme coin with no intrinsic value and no expectation
+        of financial return. It is an independent community project and is not
+        affiliated with dogwifhat or any other token. It exists because a cat wore
+        a hat. Nothing here is financial advice. Crypto is risky; you can lose
+        everything. Always verify the contract address yourself and DYOR.
+      </p>
+
+      <p class="footer__copy">© 2026 catwifhat. made by the litter. 🐱🧢</p>
+    </div>
+  </footer>
+
+  <!-- Copy toast -->
+  <div class="toast" id="toast" role="status" aria-live="polite">copied!</div>
+
+  <script src="main.js"></script>
+</body>
+</html>
