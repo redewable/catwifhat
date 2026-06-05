@@ -555,6 +555,7 @@ a { color: inherit; text-decoration: none; }
   .nav__links.open {
     max-height: 320px;
     padding: 0.8rem clamp(1.1rem, 4vw, 3rem) 1.2rem;
+    box-shadow: 0 16px 28px rgba(26, 24, 20, 0.14);
   }
   .nav__links a { padding: 0.6rem 0; width: 100%; }
 }

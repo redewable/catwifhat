@@ -166,9 +166,10 @@
           <span class="stat__label">Tax — no buy, no sell</span>
         </div>
         <div class="stat">
-          <!-- PLACEHOLDER: confirm honest liquidity status -->
-          <span class="stat__value">Bonding curve</span>
-          <span class="stat__label">Liquidity — on pump.fun</span>
+          <!-- Verified via DexScreener: token migrated off the pump.fun bonding
+               curve; deepest pool is the PumpSwap WIF/USDC pair. -->
+          <span class="stat__value">PumpSwap</span>
+          <span class="stat__label">Liquidity — migrated &amp; live on-chain</span>
         </div>
         <div class="stat">
           <!-- PLACEHOLDER: only say "Renounced" if verified true on Solscan -->
@@ -202,9 +203,8 @@
                target="_blank" rel="noopener">Swap on Jupiter ↗</a>
           </div>
           <p class="trade__note">
-            pump.fun is the home base while $WIF is on the bonding curve. Jupiter
-            routes automatically once there's on-chain liquidity. Always confirm
-            the contract address before you swap.
+            $WIF is live on-chain (migrated to PumpSwap). Grab it on pump.fun or
+            swap through Jupiter — always confirm the contract address first.
           </p>
         </div>
 
