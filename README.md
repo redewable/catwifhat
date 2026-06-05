@@ -7,7 +7,8 @@ Static site, no build step: `index.html` + `styles.css` + `main.js`.
 ## Links
 - pump.fun: https://pump.fun/Hjj93YiyaFYY8zY2EW6FM2i2gd4rxzhoLCLFabrRpump
 - DexScreener: https://dexscreener.com/solana/Hjj93YiyaFYY8zY2EW6FM2i2gd4rxzhoLCLFabrRpump
-- Telegram: https://t.me/catwifhat_USDC
+- X (official): https://x.com/catwifusdc
+- $WIF CTO (X community): https://x.com/i/communities/2037009997431713856
 
 **Contract:** `Hjj93YiyaFYY8zY2EW6FM2i2gd4rxzhoLCLFabrRpump`
 
