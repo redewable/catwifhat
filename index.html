@@ -238,35 +238,57 @@
       <h2 class="section__title reveal">Trade $WIF</h2>
       <div class="trade__grid">
 
-        <div class="trade__panel reveal">
-          <h3 class="trade__panel-title">Buy $WIF</h3>
-          <div class="buybox">
-            <a class="btn btn--blue buybox__btn"
-               href="https://pump.fun/Hjj93YiyaFYY8zY2EW6FM2i2gd4rxzhoLCLFabrRpump"
-               target="_blank" rel="noopener">Buy on pump.fun ↗</a>
-            <!-- Opens Jupiter's hosted swap with USDC → $WIF preset (Jupiter handles its own RPC) -->
-            <a class="btn btn--ghost buybox__btn"
-               href="https://jup.ag/swap/USDC-Hjj93YiyaFYY8zY2EW6FM2i2gd4rxzhoLCLFabrRpump"
-               target="_blank" rel="noopener">Swap on Jupiter ↗</a>
+        <div class="trade__panel buy-card reveal">
+          <div class="buy-card__head">
+            <img src="catwifhat-pfp.png" alt="catwifhat" class="buy-card__avatar"
+                 width="60" height="60" loading="lazy" decoding="async" />
+            <div class="buy-card__heading">
+              <h3 class="trade__panel-title">Buy $WIF</h3>
+              <span class="buy-card__pair">USDC pair · Solana</span>
+            </div>
           </div>
+
+          <ul class="buy-card__badges">
+            <li>0 / 0 tax</li>
+            <li>Renounced</li>
+            <li>Live on PumpSwap</li>
+          </ul>
+
+          <div class="buybox">
+            <a class="buybox__btn buybox__btn--pump"
+               href="https://pump.fun/Hjj93YiyaFYY8zY2EW6FM2i2gd4rxzhoLCLFabrRpump"
+               target="_blank" rel="noopener">
+              <span class="buybox__btn-label">Buy on pump.fun <span aria-hidden="true">↗</span></span>
+              <span class="buybox__btn-sub">fastest · one-click</span>
+            </a>
+            <!-- Opens Jupiter's hosted swap with USDC → $WIF preset (Jupiter handles its own RPC) -->
+            <a class="buybox__btn buybox__btn--jup"
+               href="https://jup.ag/swap/USDC-Hjj93YiyaFYY8zY2EW6FM2i2gd4rxzhoLCLFabrRpump"
+               target="_blank" rel="noopener">
+              <span class="buybox__btn-label">Swap on Jupiter <span aria-hidden="true">↗</span></span>
+              <span class="buybox__btn-sub">best route across DEXs</span>
+            </a>
+          </div>
+
           <p class="trade__note">
-            $WIF is live on-chain (migrated to PumpSwap). Grab it on pump.fun or
-            swap through Jupiter — always confirm the contract address first.
+            $WIF is live on-chain (migrated to PumpSwap). Always confirm the
+            contract address before you swap.
           </p>
         </div>
 
         <div class="trade__panel reveal">
           <h3 class="trade__panel-title">Live chart</h3>
           <div class="trade__chart">
-            <!-- Real DexScreener embed — live price / market cap / volume.
-                 NOTE: the embed needs a PAIR address, not the token address.
-                 This is the pumpswap WIF/USDC pair (the deepest pool). If liquidity
-                 ever migrates to a different main pair, swap this pair address. -->
-            <iframe title="DexScreener $WIF chart" loading="lazy"
-              src="https://dexscreener.com/solana/9DEWXPxzbJgsQb5nAPkVHpaxQSZUCevoR5dY4WKVLCw6?embed=1&theme=dark&trades=0&info=0"></iframe>
+            <!-- GeckoTerminal embed — reliable live chart for the PumpSwap WIF/USDC
+                 pool. Uses the pool (pair) address, not the token address. If the
+                 deepest pool ever changes, swap this address (verify on the API). -->
+            <iframe title="$WIF live price chart (GeckoTerminal)" loading="lazy"
+              allow="clipboard-write" allowfullscreen
+              src="https://www.geckoterminal.com/solana/pools/9DEWXPxzbJgsQb5nAPkVHpaxQSZUCevoR5dY4WKVLCw6?embed=1&info=0&swaps=0&grayscale=0&light_chart=0&chart_type=price&resolution=15m"></iframe>
           </div>
           <p class="trade__note">
-            Live data from DexScreener — appears once a trading pair exists.
+            Live price &amp; volume · WIF/USDC on PumpSwap ·
+            <a href="https://dexscreener.com/solana/Hjj93YiyaFYY8zY2EW6FM2i2gd4rxzhoLCLFabrRpump" target="_blank" rel="noopener">open in DexScreener</a>.
           </p>
         </div>
 
@@ -281,8 +303,10 @@
     <div class="section__wrap">
       <div class="contract__bar reveal">
         <span class="contract__label">Contract Address</span>
-        <code class="contract__ca" id="ca-text">Hjj93YiyaFYY8zY2EW6FM2i2gd4rxzhoLCLFabrRpump</code>
-        <button class="btn btn--blue contract__copy" data-copy-ca>Copy</button>
+        <div class="contract__row">
+          <code class="contract__ca" id="ca-text">Hjj93YiyaFYY8zY2EW6FM2i2gd4rxzhoLCLFabrRpump</code>
+          <button class="btn btn--blue contract__copy" data-copy-ca>Copy</button>
+        </div>
       </div>
     </div>
   </section>
