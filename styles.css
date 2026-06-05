@@ -591,7 +591,9 @@ a { color: inherit; text-decoration: none; }
   position: fixed;
   bottom: 28px;
   left: 50%;
-  transform: translateX(-50%) translateY(120%);
+  /* Hidden well below the viewport — must clear its own height + the 28px offset,
+     or the top of the pill peeks up as a blue blob at the bottom-center. */
+  transform: translateX(-50%) translateY(calc(100% + 40px));
   background: var(--blue);
   color: var(--white);
   font-weight: 700;
