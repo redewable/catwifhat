@@ -91,6 +91,45 @@
     revealEls.forEach(function (el) { el.classList.add("in"); });
   }
 
+  /* ---------- Meme gallery lightbox ---------- */
+  const lightbox = document.getElementById("lightbox");
+  if (lightbox) {
+    const lbImg = document.getElementById("lightbox-img");
+    const lbCap = document.getElementById("lightbox-cap");
+    const lbClose = document.getElementById("lightbox-close");
+
+    function openLightbox(src, alt, caption) {
+      lbImg.src = src;
+      lbImg.alt = alt || "";
+      lbCap.textContent = caption || "";
+      lightbox.classList.add("open");
+      lightbox.setAttribute("aria-hidden", "false");
+      document.body.style.overflow = "hidden"; // lock scroll behind overlay
+    }
+    function closeLightbox() {
+      lightbox.classList.remove("open");
+      lightbox.setAttribute("aria-hidden", "true");
+      document.body.style.overflow = "";
+      lbImg.src = "";
+    }
+
+    document.querySelectorAll(".meme-item img").forEach(function (img) {
+      img.addEventListener("click", function () {
+        const cap = img.closest(".meme-item").querySelector("figcaption");
+        openLightbox(img.src, img.alt, cap ? cap.textContent : "");
+      });
+    });
+
+    // Click anywhere on the overlay (or the X) closes it; clicking the image itself doesn't.
+    lightbox.addEventListener("click", function (e) {
+      if (e.target !== lbImg) closeLightbox();
+    });
+    lbClose.addEventListener("click", closeLightbox);
+    document.addEventListener("keydown", function (e) {
+      if (e.key === "Escape" && lightbox.classList.contains("open")) closeLightbox();
+    });
+  }
+
   /* ---------- Cat easter egg: wobble + "meow" burst ---------- */
   const cat = document.getElementById("hero-cat");
   if (cat) {

@@ -41,6 +41,7 @@
         <a href="#about">About</a>
         <a href="#how-to-buy">How to Buy</a>
         <a href="#tokenomics">Tokenomics</a>
+        <a href="#memes">Memes</a>
         <a href="#trade">Trade</a>
         <!-- Official X account: WIF @catWIFusdc -->
         <a href="https://x.com/catwifusdc" target="_blank" rel="noopener">X</a>
@@ -110,6 +111,51 @@
           ginger cat in a hand-knit beanie staring directly into your portfolio.</p>
         <p class="reveal">If you're looking for fundamentals, the fundamental is the hat. If you're
           looking for a reason, the reason is the hat. Welcome to the litter.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       4b. MEMES — "the litter box" gallery (masonry, lightbox on click)
+       ============================================================ -->
+  <section class="memes" id="memes">
+    <div class="section__wrap">
+      <h2 class="section__title reveal">The litter box</h2>
+      <p class="memes__sub reveal">Right-click, save, post. The cat belongs to the people now.</p>
+
+      <div class="meme-grid reveal">
+        <figure class="meme-item">
+          <img src="poolside-cat.JPG" loading="lazy" decoding="async" alt="Ginger cat in a blue beanie and sunglasses lounging poolside with a cocktail">
+          <figcaption>wen lambo? already poolside.</figcaption>
+        </figure>
+        <figure class="meme-item">
+          <img src="cat-100-usdc.JPG" loading="lazy" decoding="async" alt="Cat in a blue hat as the portrait on a US $100 bill">
+          <figcaption>legal tender.</figcaption>
+        </figure>
+        <figure class="meme-item">
+          <img src="parabolic-cat.JPG" loading="lazy" decoding="async" alt="Cat in a blue hat in front of a rising green candlestick chart">
+          <figcaption>up only (not financial advice).</figcaption>
+        </figure>
+        <figure class="meme-item">
+          <img src="cat-wif-grillz.JPG" loading="lazy" decoding="async" alt="Cat in a blue hat wearing diamond grillz and a gold chain">
+          <figcaption>drip secured.</figcaption>
+        </figure>
+        <figure class="meme-item">
+          <img src="cat-factory.JPG" loading="lazy" decoding="async" alt="A factory of ginger cats knitting blue hats under a sign reading one hat one cat more hats more cats">
+          <figcaption>one hat. one cat. more hats. more cats.</figcaption>
+        </figure>
+        <figure class="meme-item">
+          <img src="cat-too-cool.JPG" loading="lazy" decoding="async" alt="Cat in a blue hat wearing aviator sunglasses and a silver chain">
+          <figcaption>too cool for your roadmap.</figcaption>
+        </figure>
+        <figure class="meme-item">
+          <img src="cat-chart.JPG" loading="lazy" decoding="async" alt="Cat in a blue hat beside a glowing orange up-arrow over a price board">
+          <figcaption>number go up technology.</figcaption>
+        </figure>
+        <figure class="meme-item">
+          <img src="cat-banner.JPG" loading="lazy" decoding="async" alt="Wide banner of a cat in a blue hat over a trading screen">
+          <figcaption>back in the trenches.</figcaption>
+        </figure>
       </div>
     </div>
   </section>
@@ -265,6 +311,13 @@
       <p class="footer__copy">© 2026 catwifhat. made by the litter. 🐱🧢</p>
     </div>
   </footer>
+
+  <!-- Lightbox for meme gallery (opened from main.js) -->
+  <div class="lightbox" id="lightbox" aria-hidden="true">
+    <button class="lightbox__close" id="lightbox-close" aria-label="Close">&times;</button>
+    <img class="lightbox__img" id="lightbox-img" alt="" />
+    <p class="lightbox__cap" id="lightbox-cap"></p>
+  </div>
 
   <!-- Copy toast -->
   <div class="toast" id="toast" role="status" aria-live="polite">copied!</div>
