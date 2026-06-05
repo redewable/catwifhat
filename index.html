@@ -20,10 +20,10 @@
   <meta property="og:type" content="website" />
   <meta name="twitter:card" content="summary_large_image" />
 
-  <!-- Fonts: Fraunces (chunky display) + Inter (clean body) -->
+  <!-- Fonts: Unbounded (chunky, playful display) + Hanken Grotesk (clean body) -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700;9..144,900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@600;700;800;900&family=Hanken+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
 
   <link rel="stylesheet" href="styles.css" />
 </head>
@@ -211,9 +211,12 @@
         <div class="trade__panel reveal">
           <h3 class="trade__panel-title">Live chart</h3>
           <div class="trade__chart">
-            <!-- Real DexScreener embed — live price / market cap / volume -->
+            <!-- Real DexScreener embed — live price / market cap / volume.
+                 NOTE: the embed needs a PAIR address, not the token address.
+                 This is the pumpswap WIF/USDC pair (the deepest pool). If liquidity
+                 ever migrates to a different main pair, swap this pair address. -->
             <iframe title="DexScreener $WIF chart" loading="lazy"
-              src="https://dexscreener.com/solana/Hjj93YiyaFYY8zY2EW6FM2i2gd4rxzhoLCLFabrRpump?embed=1&theme=dark&trades=0&info=0"></iframe>
+              src="https://dexscreener.com/solana/9DEWXPxzbJgsQb5nAPkVHpaxQSZUCevoR5dY4WKVLCw6?embed=1&theme=dark&trades=0&info=0"></iframe>
           </div>
           <p class="trade__note">
             Live data from DexScreener — appears once a trading pair exists.
