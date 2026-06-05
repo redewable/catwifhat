@@ -19,4 +19,5 @@ Then open http://localhost:8000
 
 ## Note
 The hero image must be present as `hero-cat.jpeg` in the project root for the
-banner and the "Make it your PFP" download to work.
+The hero image lives at `hero-cat.png` in the project root, used by both the
+banner and the "Make it your PFP" download.
