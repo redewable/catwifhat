@@ -28,13 +28,7 @@
 /* ---------- Reset / base ---------- */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-html {
-  scroll-behavior: smooth;
-  scroll-padding-top: 80px;
-  /* Reserve scrollbar space on both sides so centered content stays symmetric
-     when a classic (non-overlay) scrollbar is present. */
-  scrollbar-gutter: stable both-edges;
-}
+html { scroll-behavior: smooth; scroll-padding-top: 80px; }
 
 body {
   font-family: var(--font-body);
@@ -269,24 +263,74 @@ a { color: inherit; text-decoration: none; }
   background: var(--blue);
   color: var(--white);
   text-align: center;
-  padding: clamp(3rem, 8vw, 6rem) clamp(1.1rem, 4vw, 3rem);
+  padding: clamp(3.5rem, 9vw, 7rem) clamp(1.1rem, 4vw, 3rem);
+  overflow: hidden;
 }
-.manifesto__text {
+.manifesto__inner { max-width: 860px; margin: 0 auto; }
+
+/* opening line */
+.manifesto__lead {
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: clamp(1.2rem, 3vw, 2.1rem);
-  line-height: 1.4;
-  max-width: 900px;
-  margin: 0 auto;
+  font-size: clamp(1.5rem, 3.6vw, 2.6rem);
+  line-height: 1.18;
+  margin-bottom: 1.7rem;
   letter-spacing: -0.01em;
 }
-.manifesto__sig {
-  display: inline-block;
-  margin-top: 0.8rem;
-  font-weight: 900;
-  font-size: 1.3em;
-  color: var(--cream);
+/* story beats — big, bold, high-contrast so they read as punchy statements */
+.manifesto__line {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: clamp(1.25rem, 2.9vw, 1.95rem);
+  line-height: 1.32;
+  max-width: 760px;
+  margin: 0 auto 0.8rem;
+  color: rgba(255, 255, 255, 0.9);
 }
+.manifesto__hl {
+  color: var(--cream);
+  font-weight: 800;
+}
+/* the turn — the pivot of the story */
+.manifesto__pivot {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: clamp(1.5rem, 3.6vw, 2.4rem);
+  line-height: 1.18;
+  margin: 1.9rem auto 0;
+}
+/* punchy three-beat */
+.manifesto__beats {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.4rem 1.4rem;
+  margin: 1.5rem auto 0;
+}
+.manifesto__beats span {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: clamp(1.5rem, 3.6vw, 2.4rem);
+  letter-spacing: -0.01em;
+}
+.manifesto__beats span:nth-child(2) { color: var(--cream); }
+/* signature punchline */
+.manifesto__sig {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: clamp(2.6rem, 7vw, 4.6rem);
+  line-height: 1;
+  letter-spacing: -0.03em;
+  color: var(--cream);
+  margin-top: 1.7rem;
+}
+
+/* staggered reveal for manifesto lines */
+.manifesto .reveal.in { transition-delay: 0.05s; }
+.manifesto__line.reveal.in { transition-delay: 0.12s; }
+.manifesto__pivot.reveal.in { transition-delay: 0.22s; }
+.manifesto__beats.reveal.in { transition-delay: 0.3s; }
+.manifesto__sig.reveal.in { transition-delay: 0.4s; }
 
 /* ============================================================
    4. ABOUT
@@ -612,6 +656,8 @@ a { color: inherit; text-decoration: none; }
   align-items: center;
   text-align: center;
   gap: 0.85rem;
+  max-width: 720px;
+  margin: 0 auto;
   background: var(--ink);
   color: var(--cream);
   border-radius: var(--radius);
