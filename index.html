@@ -43,6 +43,7 @@
         <a href="#tokenomics">Tokenomics</a>
         <a href="#memes">Memes</a>
         <a href="#banners">Banners</a>
+        <a href="#pfp-maker">PFP</a>
         <a href="#trade">Trade</a>
         <!-- Official X account: WIF @catWIFusdc -->
         <a href="https://x.com/catwifusdc" target="_blank" rel="noopener">X</a>
@@ -199,6 +200,46 @@
           <img src="alt-cat-banner.JPG" loading="lazy" decoding="async" alt="Hand-drawn $WIF banner: cat in a blue hat with doodles of a rocket, globe, USDC and community slogans">
           <figcaption>community. culture. momentum.</figcaption>
         </figure>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       4d. PFP MAKER — "wif the hat" generator (100% client-side canvas)
+       ============================================================ -->
+  <section class="pfp" id="pfp-maker">
+    <div class="section__wrap">
+      <h2 class="section__title reveal">Wif the hat — PFP maker</h2>
+      <p class="memes__sub reveal">Upload any pic, drag the hat into place, scale &amp; rotate, then download. Now you're wif the hat.</p>
+
+      <div class="pfp__grid reveal">
+        <div class="pfp__stage">
+          <canvas id="pfp-canvas" width="1080" height="1080"></canvas>
+          <button class="pfp__empty" id="pfp-empty" type="button">
+            <span class="pfp__empty-icon" aria-hidden="true">🐱</span>
+            <span>Tap to upload a photo</span>
+          </button>
+        </div>
+
+        <div class="pfp__controls">
+          <input type="file" id="pfp-file" accept="image/*" hidden />
+          <button class="btn btn--blue pfp__btn" id="pfp-upload-btn" type="button">Upload photo</button>
+
+          <label class="pfp__ctrl">Hat size
+            <input type="range" id="pfp-size" min="10" max="160" value="55" />
+          </label>
+          <label class="pfp__ctrl">Rotate
+            <input type="range" id="pfp-rotate" min="-180" max="180" value="0" />
+          </label>
+
+          <div class="pfp__row">
+            <button class="btn btn--ghost pfp__btn" id="pfp-flip" type="button">Flip hat</button>
+            <button class="btn btn--ghost pfp__btn" id="pfp-reset" type="button">Reset</button>
+          </div>
+
+          <button class="btn btn--ginger pfp__btn pfp__download" id="pfp-download" type="button" aria-disabled="true">Download PFP</button>
+          <p class="pfp__note">Drag the hat to move it · scroll/pinch or use the slider to size · everything runs in your browser, your photo is never uploaded anywhere.</p>
+        </div>
       </div>
     </div>
   </section>

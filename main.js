@@ -130,6 +130,120 @@
     });
   }
 
+  /* ---------- PFP maker: "wif the hat" generator (client-side canvas) ---------- */
+  const pcanvas = document.getElementById("pfp-canvas");
+  if (pcanvas) {
+    const cctx = pcanvas.getContext("2d");
+    const SIZE = pcanvas.width; // square internal resolution (1080)
+    const fileInput = document.getElementById("pfp-file");
+    const uploadBtn = document.getElementById("pfp-upload-btn");
+    const emptyBtn = document.getElementById("pfp-empty");
+    const sizeSlider = document.getElementById("pfp-size");
+    const rotSlider = document.getElementById("pfp-rotate");
+    const flipBtn = document.getElementById("pfp-flip");
+    const resetBtn = document.getElementById("pfp-reset");
+    const dlBtn = document.getElementById("pfp-download");
+
+    const hatImg = new Image();
+    let hatReady = false;
+    hatImg.onload = function () { hatReady = true; render(); };
+    hatImg.src = "hat-sticker.png";
+
+    let bg = null; // user's uploaded image
+    const DEFAULT = { x: SIZE / 2, y: SIZE * 0.33, scale: 0.55, rot: 0, flip: false };
+    let st = Object.assign({}, DEFAULT);
+
+    function drawCover(img) {
+      const ratio = img.width / img.height;
+      let dw, dh, dx, dy;
+      if (ratio > 1) { dh = SIZE; dw = SIZE * ratio; dx = (SIZE - dw) / 2; dy = 0; }
+      else { dw = SIZE; dh = SIZE / ratio; dx = 0; dy = (SIZE - dh) / 2; }
+      cctx.drawImage(img, dx, dy, dw, dh);
+    }
+
+    function render() {
+      cctx.clearRect(0, 0, SIZE, SIZE);
+      if (bg) { drawCover(bg); }
+      else { cctx.fillStyle = "#EDE4DB"; cctx.fillRect(0, 0, SIZE, SIZE); }
+      if (hatReady) {
+        const w = SIZE * st.scale;
+        const h = w * (hatImg.height / hatImg.width);
+        cctx.save();
+        cctx.translate(st.x, st.y);
+        cctx.rotate((st.rot * Math.PI) / 180);
+        if (st.flip) cctx.scale(-1, 1);
+        cctx.drawImage(hatImg, -w / 2, -h / 2, w, h);
+        cctx.restore();
+      }
+    }
+
+    function loadFile(file) {
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        const img = new Image();
+        img.onload = function () {
+          bg = img;
+          emptyBtn.classList.add("hidden");
+          dlBtn.setAttribute("aria-disabled", "false");
+          render();
+        };
+        img.src = e.target.result; // data URL — keeps canvas un-tainted for export
+      };
+      reader.readAsDataURL(file);
+    }
+
+    uploadBtn.addEventListener("click", function () { fileInput.click(); });
+    emptyBtn.addEventListener("click", function () { fileInput.click(); });
+    fileInput.addEventListener("change", function (e) { loadFile(e.target.files[0]); });
+
+    sizeSlider.addEventListener("input", function () { st.scale = sizeSlider.value / 100; render(); });
+    rotSlider.addEventListener("input", function () { st.rot = +rotSlider.value; render(); });
+    flipBtn.addEventListener("click", function () { st.flip = !st.flip; render(); });
+    resetBtn.addEventListener("click", function () {
+      st = Object.assign({}, DEFAULT);
+      sizeSlider.value = 55; rotSlider.value = 0; render();
+    });
+
+    // Drag the hat to position it
+    let dragging = false, last = null;
+    function canvasPos(e) {
+      const r = pcanvas.getBoundingClientRect();
+      return { x: (e.clientX - r.left) / r.width * SIZE, y: (e.clientY - r.top) / r.height * SIZE };
+    }
+    pcanvas.addEventListener("pointerdown", function (e) {
+      dragging = true; last = canvasPos(e); pcanvas.setPointerCapture(e.pointerId);
+    });
+    pcanvas.addEventListener("pointermove", function (e) {
+      if (!dragging) return;
+      const p = canvasPos(e);
+      st.x += p.x - last.x; st.y += p.y - last.y; last = p; render();
+    });
+    pcanvas.addEventListener("pointerup", function () { dragging = false; });
+    pcanvas.addEventListener("pointercancel", function () { dragging = false; });
+    // Scroll wheel to scale (desktop)
+    pcanvas.addEventListener("wheel", function (e) {
+      e.preventDefault();
+      st.scale = Math.min(1.6, Math.max(0.1, st.scale - e.deltaY * 0.0008));
+      sizeSlider.value = Math.round(st.scale * 100); render();
+    }, { passive: false });
+
+    // Download the composed PFP
+    dlBtn.addEventListener("click", function () {
+      if (dlBtn.getAttribute("aria-disabled") === "true") return;
+      pcanvas.toBlob(function (blob) {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url; a.download = "my-catwifhat-pfp.png";
+        document.body.appendChild(a); a.click(); a.remove();
+        setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+        showToast("PFP saved!");
+      }, "image/png");
+    });
+
+    render();
+  }
+
   /* ---------- Cat easter egg: wobble + "meow" burst ---------- */
   const cat = document.getElementById("hero-cat");
   if (cat) {
