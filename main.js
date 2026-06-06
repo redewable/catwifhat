@@ -113,9 +113,9 @@
       lbImg.src = "";
     }
 
-    document.querySelectorAll(".meme-item img").forEach(function (img) {
+    document.querySelectorAll(".meme-item img, .banner-item img").forEach(function (img) {
       img.addEventListener("click", function () {
-        const cap = img.closest(".meme-item").querySelector("figcaption");
+        const cap = img.closest("figure").querySelector("figcaption");
         openLightbox(img.src, img.alt, cap ? cap.textContent : "");
       });
     });
