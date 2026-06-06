@@ -13,13 +13,22 @@
   <link rel="icon" type="image/png" href="favicon.png" />
   <link rel="apple-touch-icon" href="apple-touch-icon.png" />
 
-  <!-- Open Graph / social preview -->
-  <meta property="og:title" content="catwifhat ($WIF)" />
-  <meta property="og:description" content="every dog had its day. now the cat's got a hat." />
-  <meta property="og:image" content="hero-cat.jpg" />
+  <!-- Open Graph / social preview.
+       NOTE: og:image / twitter:image MUST be ABSOLUTE URLs — X, Telegram, etc.
+       won't render a relative path (that's why the card showed blank). -->
   <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://www.catwifusdc.com/" />
+  <meta property="og:title" content="catwifhat ($WIF) — one hat. one cat. zero plans." />
+  <meta property="og:description" content="every dog had its day. now the cat's got a hat." />
+  <meta property="og:image" content="https://www.catwifusdc.com/og-card.jpg" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:alt" content="catwifhat — a ginger cat in a blue knit beanie" />
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:site" content="@catWIFusdc" />
+  <meta name="twitter:title" content="catwifhat ($WIF)" />
+  <meta name="twitter:description" content="every dog had its day. now the cat's got a hat." />
+  <meta name="twitter:image" content="https://www.catwifusdc.com/og-card.jpg" />
 
   <!-- Fonts: Unbounded (chunky, playful display) + Hanken Grotesk (clean body) -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -223,8 +232,12 @@
             <button class="pfp__tab" id="pfp-tab-upload" type="button">Upload your photo</button>
           </div>
 
+          <!-- cat picker (cat mode) — populated by main.js -->
+          <div class="pfp__cats pfp__catonly" id="pfp-cats"></div>
+
+          <!-- upload (upload mode) -->
           <input type="file" id="pfp-file" accept="image/*" hidden />
-          <button class="btn btn--blue pfp__btn" id="pfp-upload-btn" type="button" hidden>Choose a photo</button>
+          <button class="btn btn--blue pfp__btn pfp__uploadonly" id="pfp-upload-btn" type="button" hidden>Choose a photo</button>
 
           <div class="pfp__colors">
             <span class="pfp__colors-label">Hat color</span>
@@ -232,20 +245,24 @@
             <input type="color" id="pfp-hatcolor" value="#2E5FD8" aria-label="Pick any hat color" />
           </div>
 
-          <label class="pfp__ctrl">Hat size
-            <input type="range" id="pfp-size" min="10" max="160" value="66" />
-          </label>
-          <label class="pfp__ctrl">Rotate
-            <input type="range" id="pfp-rotate" min="-180" max="180" value="0" />
-          </label>
-
-          <div class="pfp__row">
-            <button class="btn btn--ghost pfp__btn" id="pfp-flip" type="button">Flip hat</button>
-            <button class="btn btn--ghost pfp__btn" id="pfp-reset" type="button">Reset</button>
+          <!-- hat position controls (upload mode only) -->
+          <div class="pfp__uploadonly" id="pfp-hatctrls" hidden>
+            <label class="pfp__ctrl">Hat size
+              <input type="range" id="pfp-size" min="10" max="160" value="55" />
+            </label>
+            <label class="pfp__ctrl">Rotate
+              <input type="range" id="pfp-rotate" min="-180" max="180" value="0" />
+            </label>
+            <div class="pfp__row">
+              <button class="btn btn--ghost pfp__btn" id="pfp-flip" type="button">Flip hat</button>
+            </div>
           </div>
 
-          <button class="btn btn--ginger pfp__btn pfp__download" id="pfp-download" type="button">Download PFP</button>
-          <p class="pfp__note">Drag the hat to move it · pick any color with the wheel · everything runs in your browser, nothing is uploaded.</p>
+          <div class="pfp__row">
+            <button class="btn btn--ghost pfp__btn" id="pfp-reset" type="button">Reset</button>
+            <button class="btn btn--ginger pfp__btn pfp__download" id="pfp-download" type="button">Download</button>
+          </div>
+          <p class="pfp__note">"Use the cat" — pick a cat &amp; recolor the hat. "Upload" — drag the hat onto your own pic. Everything runs in your browser; nothing is uploaded.</p>
         </div>
       </div>
     </div>

@@ -130,7 +130,7 @@
     });
   }
 
-  /* ---------- PFP maker: cat-first "wif the hat" generator ---------- */
+  /* ---------- PFP maker: pick-a-cat + recolor hat, or hat-on-your-photo ---------- */
   const pcanvas = document.getElementById("pfp-canvas");
   if (pcanvas) {
     const cctx = pcanvas.getContext("2d");
@@ -139,6 +139,7 @@
     const uploadBtn = document.getElementById("pfp-upload-btn");
     const tabCat = document.getElementById("pfp-tab-cat");
     const tabUpload = document.getElementById("pfp-tab-upload");
+    const catsWrap = document.getElementById("pfp-cats");
     const sizeSlider = document.getElementById("pfp-size");
     const rotSlider = document.getElementById("pfp-rotate");
     const flipBtn = document.getElementById("pfp-flip");
@@ -146,41 +147,38 @@
     const dlBtn = document.getElementById("pfp-download");
     const colorInput = document.getElementById("pfp-hatcolor");
     const swatchWrap = document.getElementById("pfp-swatches");
+    const catOnly = document.querySelectorAll(".pfp__catonly");
+    const uploadOnly = document.querySelectorAll(".pfp__uploadonly");
 
-    // Exact placement of the hat sticker back over the cat it was cut from
-    const HAT_ON_CAT = { cx: 0.5396, cy: 0.3775, scale: 0.6575 };
+    const DEFAULT_COLOR = "#2e5fd8";
+    // Plain-background cats (recolor only touches the blue hat cleanly)
+    const CATS = [
+      { src: "og-catwifhat.JPG", label: "Classic" },
+      { src: "cat-too-cool.JPG", label: "Shades" },
+      { src: "cat-wif-grillz.JPG", label: "Grillz" }
+    ];
 
+    let mode = "cat";
+    let hatColor = DEFAULT_COLOR;
+    let catSrc = CATS[0].src;
+    const catCache = {};
+    let baseData = null; // cached pixels of the drawn cat (pre-recolor)
+
+    // upload-mode hat overlay
     const hatImg = new Image();
     let hatReady = false;
     const tintCanvas = document.createElement("canvas");
     const tctx = tintCanvas.getContext("2d");
-    let hatColor = "#2e5fd8";
+    let bg = null;
+    function upState() { return { x: SIZE / 2, y: SIZE * 0.33, scale: 0.55, rot: 0, flip: false }; }
+    let st = upState();
 
-    const catImg = new Image();
-    let catReady = false;
-
-    let bg = null;       // uploaded image
-    let mode = "cat";    // 'cat' | 'upload'
-    const catState = function () { return { x: HAT_ON_CAT.cx * SIZE, y: HAT_ON_CAT.cy * SIZE, scale: HAT_ON_CAT.scale, rot: 0, flip: false }; };
-    const upState = function () { return { x: SIZE / 2, y: SIZE * 0.33, scale: 0.55, rot: 0, flip: false }; };
-    let st = catState();
-
-    // Recolor the hat: keep its knit shading (luminance), apply chosen hue/sat
-    function buildTint() {
-      if (!hatReady) return;
-      tintCanvas.width = hatImg.width;
-      tintCanvas.height = hatImg.height;
-      tctx.globalCompositeOperation = "source-over";
-      tctx.clearRect(0, 0, tintCanvas.width, tintCanvas.height);
-      tctx.drawImage(hatImg, 0, 0);
-      tctx.globalCompositeOperation = "color";
-      tctx.fillStyle = hatColor;
-      tctx.fillRect(0, 0, tintCanvas.width, tintCanvas.height);
-      tctx.globalCompositeOperation = "destination-in"; // clip back to hat shape
-      tctx.drawImage(hatImg, 0, 0);
-      tctx.globalCompositeOperation = "source-over";
+    function hexToRgb(h) {
+      h = h.replace("#", "");
+      if (h.length === 3) h = h.split("").map(function (c) { return c + c; }).join("");
+      const n = parseInt(h, 16);
+      return { r: (n >> 16) & 255, g: (n >> 8) & 255, b: n & 255 };
     }
-
     function drawCover(img) {
       const ratio = img.width / img.height;
       let dw, dh, dx, dy;
@@ -189,23 +187,66 @@
       cctx.drawImage(img, dx, dy, dw, dh);
     }
 
-    function render() {
+    /* ----- CAT MODE: recolor the blue hat in the chosen cat, per-pixel ----- */
+    function loadCat(src) {
+      catSrc = src;
+      const cached = catCache[src];
+      if (cached && cached.complete && cached.naturalWidth) { drawCatBase(cached); return; }
+      const img = cached || (catCache[src] = new Image());
+      img.onload = function () { drawCatBase(img); };
+      if (!img.src) img.src = src;
+    }
+    function drawCatBase(img) {
       cctx.clearRect(0, 0, SIZE, SIZE);
-      if (mode === "cat" && catReady) {
-        drawCover(catImg);
-      } else if (mode === "upload" && bg) {
-        drawCover(bg);
-      } else {
-        cctx.fillStyle = "#EDE4DB";
-        cctx.fillRect(0, 0, SIZE, SIZE);
-        cctx.fillStyle = "rgba(26,24,20,0.45)";
-        cctx.textAlign = "center";
+      drawCover(img);
+      baseData = cctx.getImageData(0, 0, SIZE, SIZE);
+      recolorCat();
+      updateDownload();
+    }
+    function recolorCat() {
+      if (!baseData) return;
+      if (hatColor === DEFAULT_COLOR) { cctx.putImageData(baseData, 0, 0); return; }
+      const out = cctx.createImageData(SIZE, SIZE);
+      out.data.set(baseData.data);
+      const d = out.data, t = hexToRgb(hatColor);
+      const tl = (0.299 * t.r + 0.587 * t.g + 0.114 * t.b) || 1;
+      for (let i = 0; i < d.length; i += 4) {
+        const r = d[i], g = d[i + 1], b = d[i + 2];
+        if (b > 90 && b - r > 18 && b - g > 10) { // blue hat pixel
+          const l = 0.299 * r + 0.587 * g + 0.114 * b, f = l / tl;
+          d[i] = Math.min(255, t.r * f);
+          d[i + 1] = Math.min(255, t.g * f);
+          d[i + 2] = Math.min(255, t.b * f);
+        }
+      }
+      cctx.putImageData(out, 0, 0);
+    }
+
+    /* ----- UPLOAD MODE: overlay a recolorable hat sticker ----- */
+    function buildTint() {
+      if (!hatReady) return;
+      tintCanvas.width = hatImg.width; tintCanvas.height = hatImg.height;
+      tctx.globalCompositeOperation = "source-over";
+      tctx.clearRect(0, 0, tintCanvas.width, tintCanvas.height);
+      tctx.drawImage(hatImg, 0, 0);
+      tctx.globalCompositeOperation = "color";
+      tctx.fillStyle = hatColor;
+      tctx.fillRect(0, 0, tintCanvas.width, tintCanvas.height);
+      tctx.globalCompositeOperation = "destination-in";
+      tctx.drawImage(hatImg, 0, 0);
+      tctx.globalCompositeOperation = "source-over";
+    }
+    function renderUpload() {
+      cctx.clearRect(0, 0, SIZE, SIZE);
+      if (bg) { drawCover(bg); }
+      else {
+        cctx.fillStyle = "#EDE4DB"; cctx.fillRect(0, 0, SIZE, SIZE);
+        cctx.fillStyle = "rgba(26,24,20,0.45)"; cctx.textAlign = "center";
         cctx.font = "600 40px Inter, system-ui, sans-serif";
         cctx.fillText("Choose a photo to start", SIZE / 2, SIZE / 2);
       }
       if (hatReady) {
-        const w = SIZE * st.scale;
-        const h = w * (hatImg.height / hatImg.width);
+        const w = SIZE * st.scale, h = w * (hatImg.height / hatImg.width);
         cctx.save();
         cctx.translate(st.x, st.y);
         cctx.rotate((st.rot * Math.PI) / 180);
@@ -215,61 +256,70 @@
       }
     }
 
+    function render() { if (mode === "cat") recolorCat(); else renderUpload(); }
     function updateDownload() {
-      const ok = (mode === "cat" && catReady) || (mode === "upload" && bg);
+      const ok = (mode === "cat" && baseData) || (mode === "upload" && bg);
       dlBtn.setAttribute("aria-disabled", ok ? "false" : "true");
-    }
-
-    function syncSliders() {
-      sizeSlider.value = Math.round(st.scale * 100);
-      rotSlider.value = st.rot;
     }
 
     function setMode(m) {
       mode = m;
       tabCat.classList.toggle("is-active", m === "cat");
       tabUpload.classList.toggle("is-active", m === "upload");
-      uploadBtn.hidden = (m !== "upload");
-      st = (m === "cat") ? catState() : upState();
-      syncSliders();
+      catOnly.forEach(function (el) { el.hidden = (m !== "cat"); });
+      uploadOnly.forEach(function (el) { el.hidden = (m !== "upload"); });
+      pcanvas.style.cursor = (m === "upload") ? "grab" : "default";
+      if (m === "cat") { loadCat(catSrc); }
+      else { st = upState(); sizeSlider.value = 55; rotSlider.value = 0; buildTint(); renderUpload(); }
       updateDownload();
-      render();
     }
 
-    // images
-    hatImg.onload = function () { hatReady = true; buildTint(); render(); };
-    hatImg.src = "hat-sticker.png";
-    catImg.onload = function () { catReady = true; updateDownload(); render(); };
-    catImg.src = "cat-wif-grillz.JPG";
-
-    // color swatches + wheel
-    const PRESETS = ["#2e5fd8", "#e08a3c", "#e84393", "#22b07d", "#8e44ad", "#111111", "#f2f2f2"];
     function setColor(c) {
       hatColor = c.toLowerCase();
-      buildTint();
       Array.prototype.forEach.call(swatchWrap.children, function (s) {
         s.classList.toggle("is-active", s.dataset.color === hatColor);
       });
+      if (mode === "upload") buildTint();
       render();
     }
+
+    // swatches
+    const PRESETS = ["#2e5fd8", "#e08a3c", "#e84393", "#22b07d", "#8e44ad", "#111111", "#f2f2f2"];
     PRESETS.forEach(function (c, i) {
       const b = document.createElement("button");
       b.type = "button";
       b.className = "pfp__swatch" + (i === 0 ? " is-active" : "");
-      b.style.background = c;
-      b.dataset.color = c;
+      b.style.background = c; b.dataset.color = c;
       b.setAttribute("aria-label", "Hat color " + c);
       b.addEventListener("click", function () { colorInput.value = c; setColor(c); });
       swatchWrap.appendChild(b);
     });
     colorInput.addEventListener("input", function () { setColor(colorInput.value); });
 
-    // controls
-    tabCat.addEventListener("click", function () { setMode("cat"); });
-    tabUpload.addEventListener("click", function () {
-      setMode("upload");
-      if (!bg) fileInput.click();
+    // cat picker thumbnails
+    CATS.forEach(function (cat, i) {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.className = "pfp__cat" + (i === 0 ? " is-active" : "");
+      b.title = cat.label;
+      const im = document.createElement("img");
+      im.src = cat.src; im.alt = cat.label; im.loading = "lazy";
+      b.appendChild(im);
+      b.addEventListener("click", function () {
+        Array.prototype.forEach.call(catsWrap.children, function (x) { x.classList.remove("is-active"); });
+        b.classList.add("is-active");
+        loadCat(cat.src);
+      });
+      catsWrap.appendChild(b);
     });
+
+    // hat sticker (for upload mode)
+    hatImg.onload = function () { hatReady = true; buildTint(); if (mode === "upload") renderUpload(); };
+    hatImg.src = "hat-sticker.png";
+
+    // tabs + upload
+    tabCat.addEventListener("click", function () { setMode("cat"); });
+    tabUpload.addEventListener("click", function () { setMode("upload"); if (!bg) fileInput.click(); });
     uploadBtn.addEventListener("click", function () { fileInput.click(); });
     fileInput.addEventListener("change", function (e) {
       const file = e.target.files[0];
@@ -277,38 +327,40 @@
       const reader = new FileReader();
       reader.onload = function (ev) {
         const img = new Image();
-        img.onload = function () { bg = img; updateDownload(); render(); };
-        img.src = ev.target.result; // data URL keeps canvas exportable
+        img.onload = function () { bg = img; updateDownload(); renderUpload(); };
+        img.src = ev.target.result;
       };
       reader.readAsDataURL(file);
     });
 
-    sizeSlider.addEventListener("input", function () { st.scale = sizeSlider.value / 100; render(); });
-    rotSlider.addEventListener("input", function () { st.rot = +rotSlider.value; render(); });
-    flipBtn.addEventListener("click", function () { st.flip = !st.flip; render(); });
+    // hat transform (upload mode)
+    sizeSlider.addEventListener("input", function () { st.scale = sizeSlider.value / 100; renderUpload(); });
+    rotSlider.addEventListener("input", function () { st.rot = +rotSlider.value; renderUpload(); });
+    flipBtn.addEventListener("click", function () { st.flip = !st.flip; renderUpload(); });
     resetBtn.addEventListener("click", function () {
-      st = (mode === "cat") ? catState() : upState();
-      syncSliders(); render();
+      hatColor = DEFAULT_COLOR; colorInput.value = "#2E5FD8";
+      Array.prototype.forEach.call(swatchWrap.children, function (s) {
+        s.classList.toggle("is-active", s.dataset.color === DEFAULT_COLOR);
+      });
+      if (mode === "cat") { loadCat(catSrc); }
+      else { st = upState(); sizeSlider.value = 55; rotSlider.value = 0; buildTint(); renderUpload(); }
     });
 
-    // drag the hat
+    // drag hat (upload mode only)
     let dragging = false, last = null;
     function canvasPos(e) {
       const r = pcanvas.getBoundingClientRect();
       return { x: (e.clientX - r.left) / r.width * SIZE, y: (e.clientY - r.top) / r.height * SIZE };
     }
-    pcanvas.addEventListener("pointerdown", function (e) { dragging = true; last = canvasPos(e); pcanvas.setPointerCapture(e.pointerId); });
-    pcanvas.addEventListener("pointermove", function (e) {
-      if (!dragging) return;
-      const p = canvasPos(e);
-      st.x += p.x - last.x; st.y += p.y - last.y; last = p; render();
-    });
+    pcanvas.addEventListener("pointerdown", function (e) { if (mode !== "upload") return; dragging = true; last = canvasPos(e); pcanvas.setPointerCapture(e.pointerId); });
+    pcanvas.addEventListener("pointermove", function (e) { if (!dragging) return; const p = canvasPos(e); st.x += p.x - last.x; st.y += p.y - last.y; last = p; renderUpload(); });
     pcanvas.addEventListener("pointerup", function () { dragging = false; });
     pcanvas.addEventListener("pointercancel", function () { dragging = false; });
     pcanvas.addEventListener("wheel", function (e) {
+      if (mode !== "upload") return;
       e.preventDefault();
       st.scale = Math.min(1.6, Math.max(0.1, st.scale - e.deltaY * 0.0008));
-      sizeSlider.value = Math.round(st.scale * 100); render();
+      sizeSlider.value = Math.round(st.scale * 100); renderUpload();
     }, { passive: false });
 
     // download
@@ -324,7 +376,8 @@
       }, "image/png");
     });
 
-    render();
+    // init
+    setMode("cat");
   }
 
   /* ---------- Cat easter egg: wobble + "meow" burst ---------- */
