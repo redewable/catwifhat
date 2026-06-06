@@ -130,28 +130,56 @@
     });
   }
 
-  /* ---------- PFP maker: "wif the hat" generator (client-side canvas) ---------- */
+  /* ---------- PFP maker: cat-first "wif the hat" generator ---------- */
   const pcanvas = document.getElementById("pfp-canvas");
   if (pcanvas) {
     const cctx = pcanvas.getContext("2d");
-    const SIZE = pcanvas.width; // square internal resolution (1080)
+    const SIZE = pcanvas.width; // 1080
     const fileInput = document.getElementById("pfp-file");
     const uploadBtn = document.getElementById("pfp-upload-btn");
-    const emptyBtn = document.getElementById("pfp-empty");
+    const tabCat = document.getElementById("pfp-tab-cat");
+    const tabUpload = document.getElementById("pfp-tab-upload");
     const sizeSlider = document.getElementById("pfp-size");
     const rotSlider = document.getElementById("pfp-rotate");
     const flipBtn = document.getElementById("pfp-flip");
     const resetBtn = document.getElementById("pfp-reset");
     const dlBtn = document.getElementById("pfp-download");
+    const colorInput = document.getElementById("pfp-hatcolor");
+    const swatchWrap = document.getElementById("pfp-swatches");
+
+    // Exact placement of the hat sticker back over the cat it was cut from
+    const HAT_ON_CAT = { cx: 0.5396, cy: 0.3775, scale: 0.6575 };
 
     const hatImg = new Image();
     let hatReady = false;
-    hatImg.onload = function () { hatReady = true; render(); };
-    hatImg.src = "hat-sticker.png";
+    const tintCanvas = document.createElement("canvas");
+    const tctx = tintCanvas.getContext("2d");
+    let hatColor = "#2e5fd8";
 
-    let bg = null; // user's uploaded image
-    const DEFAULT = { x: SIZE / 2, y: SIZE * 0.33, scale: 0.55, rot: 0, flip: false };
-    let st = Object.assign({}, DEFAULT);
+    const catImg = new Image();
+    let catReady = false;
+
+    let bg = null;       // uploaded image
+    let mode = "cat";    // 'cat' | 'upload'
+    const catState = function () { return { x: HAT_ON_CAT.cx * SIZE, y: HAT_ON_CAT.cy * SIZE, scale: HAT_ON_CAT.scale, rot: 0, flip: false }; };
+    const upState = function () { return { x: SIZE / 2, y: SIZE * 0.33, scale: 0.55, rot: 0, flip: false }; };
+    let st = catState();
+
+    // Recolor the hat: keep its knit shading (luminance), apply chosen hue/sat
+    function buildTint() {
+      if (!hatReady) return;
+      tintCanvas.width = hatImg.width;
+      tintCanvas.height = hatImg.height;
+      tctx.globalCompositeOperation = "source-over";
+      tctx.clearRect(0, 0, tintCanvas.width, tintCanvas.height);
+      tctx.drawImage(hatImg, 0, 0);
+      tctx.globalCompositeOperation = "color";
+      tctx.fillStyle = hatColor;
+      tctx.fillRect(0, 0, tintCanvas.width, tintCanvas.height);
+      tctx.globalCompositeOperation = "destination-in"; // clip back to hat shape
+      tctx.drawImage(hatImg, 0, 0);
+      tctx.globalCompositeOperation = "source-over";
+    }
 
     function drawCover(img) {
       const ratio = img.width / img.height;
@@ -163,8 +191,18 @@
 
     function render() {
       cctx.clearRect(0, 0, SIZE, SIZE);
-      if (bg) { drawCover(bg); }
-      else { cctx.fillStyle = "#EDE4DB"; cctx.fillRect(0, 0, SIZE, SIZE); }
+      if (mode === "cat" && catReady) {
+        drawCover(catImg);
+      } else if (mode === "upload" && bg) {
+        drawCover(bg);
+      } else {
+        cctx.fillStyle = "#EDE4DB";
+        cctx.fillRect(0, 0, SIZE, SIZE);
+        cctx.fillStyle = "rgba(26,24,20,0.45)";
+        cctx.textAlign = "center";
+        cctx.font = "600 40px Inter, system-ui, sans-serif";
+        cctx.fillText("Choose a photo to start", SIZE / 2, SIZE / 2);
+      }
       if (hatReady) {
         const w = SIZE * st.scale;
         const h = w * (hatImg.height / hatImg.width);
@@ -172,48 +210,94 @@
         cctx.translate(st.x, st.y);
         cctx.rotate((st.rot * Math.PI) / 180);
         if (st.flip) cctx.scale(-1, 1);
-        cctx.drawImage(hatImg, -w / 2, -h / 2, w, h);
+        cctx.drawImage(tintCanvas, -w / 2, -h / 2, w, h);
         cctx.restore();
       }
     }
 
-    function loadFile(file) {
-      if (!file) return;
-      const reader = new FileReader();
-      reader.onload = function (e) {
-        const img = new Image();
-        img.onload = function () {
-          bg = img;
-          emptyBtn.classList.add("hidden");
-          dlBtn.setAttribute("aria-disabled", "false");
-          render();
-        };
-        img.src = e.target.result; // data URL — keeps canvas un-tainted for export
-      };
-      reader.readAsDataURL(file);
+    function updateDownload() {
+      const ok = (mode === "cat" && catReady) || (mode === "upload" && bg);
+      dlBtn.setAttribute("aria-disabled", ok ? "false" : "true");
     }
 
+    function syncSliders() {
+      sizeSlider.value = Math.round(st.scale * 100);
+      rotSlider.value = st.rot;
+    }
+
+    function setMode(m) {
+      mode = m;
+      tabCat.classList.toggle("is-active", m === "cat");
+      tabUpload.classList.toggle("is-active", m === "upload");
+      uploadBtn.hidden = (m !== "upload");
+      st = (m === "cat") ? catState() : upState();
+      syncSliders();
+      updateDownload();
+      render();
+    }
+
+    // images
+    hatImg.onload = function () { hatReady = true; buildTint(); render(); };
+    hatImg.src = "hat-sticker.png";
+    catImg.onload = function () { catReady = true; updateDownload(); render(); };
+    catImg.src = "cat-wif-grillz.JPG";
+
+    // color swatches + wheel
+    const PRESETS = ["#2e5fd8", "#e08a3c", "#e84393", "#22b07d", "#8e44ad", "#111111", "#f2f2f2"];
+    function setColor(c) {
+      hatColor = c.toLowerCase();
+      buildTint();
+      Array.prototype.forEach.call(swatchWrap.children, function (s) {
+        s.classList.toggle("is-active", s.dataset.color === hatColor);
+      });
+      render();
+    }
+    PRESETS.forEach(function (c, i) {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.className = "pfp__swatch" + (i === 0 ? " is-active" : "");
+      b.style.background = c;
+      b.dataset.color = c;
+      b.setAttribute("aria-label", "Hat color " + c);
+      b.addEventListener("click", function () { colorInput.value = c; setColor(c); });
+      swatchWrap.appendChild(b);
+    });
+    colorInput.addEventListener("input", function () { setColor(colorInput.value); });
+
+    // controls
+    tabCat.addEventListener("click", function () { setMode("cat"); });
+    tabUpload.addEventListener("click", function () {
+      setMode("upload");
+      if (!bg) fileInput.click();
+    });
     uploadBtn.addEventListener("click", function () { fileInput.click(); });
-    emptyBtn.addEventListener("click", function () { fileInput.click(); });
-    fileInput.addEventListener("change", function (e) { loadFile(e.target.files[0]); });
+    fileInput.addEventListener("change", function (e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function (ev) {
+        const img = new Image();
+        img.onload = function () { bg = img; updateDownload(); render(); };
+        img.src = ev.target.result; // data URL keeps canvas exportable
+      };
+      reader.readAsDataURL(file);
+    });
 
     sizeSlider.addEventListener("input", function () { st.scale = sizeSlider.value / 100; render(); });
     rotSlider.addEventListener("input", function () { st.rot = +rotSlider.value; render(); });
     flipBtn.addEventListener("click", function () { st.flip = !st.flip; render(); });
     resetBtn.addEventListener("click", function () {
-      st = Object.assign({}, DEFAULT);
-      sizeSlider.value = 55; rotSlider.value = 0; render();
+      st = (mode === "cat") ? catState() : upState();
+      syncSliders(); render();
     });
 
-    // Drag the hat to position it
+    // drag the hat
     let dragging = false, last = null;
     function canvasPos(e) {
       const r = pcanvas.getBoundingClientRect();
       return { x: (e.clientX - r.left) / r.width * SIZE, y: (e.clientY - r.top) / r.height * SIZE };
     }
-    pcanvas.addEventListener("pointerdown", function (e) {
-      dragging = true; last = canvasPos(e); pcanvas.setPointerCapture(e.pointerId);
-    });
+    pcanvas.addEventListener("pointerdown", function (e) { dragging = true; last = canvasPos(e); pcanvas.setPointerCapture(e.pointerId); });
     pcanvas.addEventListener("pointermove", function (e) {
       if (!dragging) return;
       const p = canvasPos(e);
@@ -221,14 +305,13 @@
     });
     pcanvas.addEventListener("pointerup", function () { dragging = false; });
     pcanvas.addEventListener("pointercancel", function () { dragging = false; });
-    // Scroll wheel to scale (desktop)
     pcanvas.addEventListener("wheel", function (e) {
       e.preventDefault();
       st.scale = Math.min(1.6, Math.max(0.1, st.scale - e.deltaY * 0.0008));
       sizeSlider.value = Math.round(st.scale * 100); render();
     }, { passive: false });
 
-    // Download the composed PFP
+    // download
     dlBtn.addEventListener("click", function () {
       if (dlBtn.getAttribute("aria-disabled") === "true") return;
       pcanvas.toBlob(function (blob) {
