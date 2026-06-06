@@ -147,25 +147,14 @@
     const dlBtn = document.getElementById("pfp-download");
     const colorInput = document.getElementById("pfp-hatcolor");
     const swatchWrap = document.getElementById("pfp-swatches");
-    const furInput = document.getElementById("pfp-furcolor");
-    const eyeInput = document.getElementById("pfp-eyecolor");
-    const eyeRow = document.getElementById("pfp-eyerow");
-    const furOrig = document.getElementById("pfp-fur-orig");
-    const eyeOrig = document.getElementById("pfp-eye-orig");
     let catOnly = document.querySelectorAll(".pfp__catonly");
     const uploadOnly = document.querySelectorAll(".pfp__uploadonly");
 
-    // "default" colors ≈ the cat's original colors → recolor for a channel is
-    // skipped while it matches, so the starting look is untouched.
-    const HAT_DEF = "#2e5fd8", FUR_DEF = "#b8743c", EYE_DEF = "#6b7a3a";
-    // The one official cat. `eyes` = normalized iris ellipses for eye recolor.
-    const CATS = [
-      { src: "og-catwifhat.JPG", label: "catwifhat",
-        eyes: [ { cx: 0.435, cy: 0.634, r: 0.032 }, { cx: 0.600, cy: 0.634, r: 0.032 } ] }
-    ];
+    const HAT_DEF = "#2e5fd8";
+    const CATS = [ { src: "og-catwifhat.JPG", label: "catwifhat" } ];
 
     let mode = "cat";
-    let hatColor = HAT_DEF, furColor = FUR_DEF, eyeColor = EYE_DEF;
+    let hatColor = HAT_DEF;
     let catSrc = CATS[0].src;
     let curCat = CATS[0];
     const catCache = {};
@@ -211,46 +200,22 @@
       recolorCat();
       updateDownload();
     }
-    function lumOf(c) { return (0.299 * c.r + 0.587 * c.g + 0.114 * c.b) || 1; }
     function recolorCat() {
       if (!baseData) return;
-      const noHat = hatColor === HAT_DEF;
-      const noFur = furColor === FUR_DEF;
-      const eyesOn = !!(curCat.eyes && eyeColor !== EYE_DEF);
-      if (noHat && noFur && !eyesOn) { cctx.putImageData(baseData, 0, 0); return; }
+      if (hatColor === HAT_DEF) { cctx.putImageData(baseData, 0, 0); return; } // original
       const out = cctx.createImageData(SIZE, SIZE);
       out.data.set(baseData.data);
-      const d = out.data;
-      const th = hexToRgb(hatColor), tf = hexToRgb(furColor), te = hexToRgb(eyeColor);
-      const lh = lumOf(th), lf = lumOf(tf), le = lumOf(te);
-      const eyes = eyesOn ? curCat.eyes.map(function (e) { return { x: e.cx * SIZE, y: e.cy * SIZE, r: e.r * SIZE }; }) : [];
+      const d = out.data, t = hexToRgb(hatColor);
+      const tl = (0.299 * t.r + 0.587 * t.g + 0.114 * t.b) || 1;
       for (let i = 0; i < d.length; i += 4) {
         const r = d[i], g = d[i + 1], b = d[i + 2];
-        // hat (royal blue)
-        if (b > 90 && b - r > 18 && b - g > 10) {
-          if (!noHat) { const f = (0.299 * r + 0.587 * g + 0.114 * b) / lh; d[i] = Math.min(255, th.r * f); d[i + 1] = Math.min(255, th.g * f); d[i + 2] = Math.min(255, th.b * f); }
-          continue;
-        }
-        // eyes (only inside the iris ellipses)
-        if (eyes.length) {
-          const p = i / 4, px = p % SIZE, py = (p / SIZE) | 0;
-          let inEye = false;
-          for (let k = 0; k < eyes.length; k++) { const dx = (px - eyes[k].x) / eyes[k].r, dy = (py - eyes[k].y) / eyes[k].r; if (dx * dx + dy * dy <= 1) { inEye = true; break; } }
-          if (inEye) {
-            const l = 0.299 * r + 0.587 * g + 0.114 * b;
-            if (l > 28 && l < 205) { const f = l / le; d[i] = Math.min(255, te.r * f); d[i + 1] = Math.min(255, te.g * f); d[i + 2] = Math.min(255, te.b * f); }
-            continue;
-          }
-        }
-        // fur (saturated warm tones; beige bg is too desaturated to match)
-        if (!noFur && r > g && g >= b && (r - b) > 45) {
-          const f = (0.299 * r + 0.587 * g + 0.114 * b) / lf;
-          d[i] = Math.min(255, tf.r * f); d[i + 1] = Math.min(255, tf.g * f); d[i + 2] = Math.min(255, tf.b * f);
+        if (b > 90 && b - r > 18 && b - g > 10) { // blue hat pixel
+          const f = (0.299 * r + 0.587 * g + 0.114 * b) / tl;
+          d[i] = Math.min(255, t.r * f); d[i + 1] = Math.min(255, t.g * f); d[i + 2] = Math.min(255, t.b * f);
         }
       }
       cctx.putImageData(out, 0, 0);
     }
-    function updateEyeRow() { eyeRow.hidden = !(mode === "cat" && curCat.eyes); }
 
     /* ----- UPLOAD MODE: overlay a recolorable hat sticker ----- */
     function buildTint() {
@@ -301,7 +266,6 @@
       pcanvas.style.cursor = (m === "upload") ? "grab" : "default";
       if (m === "cat") { loadCat(catSrc); }
       else { st = upState(); sizeSlider.value = 55; rotSlider.value = 0; buildTint(); renderUpload(); }
-      updateEyeRow();
       updateDownload();
     }
 
@@ -326,10 +290,6 @@
       swatchWrap.appendChild(b);
     });
     colorInput.addEventListener("input", function () { setColor(colorInput.value); });
-    furInput.addEventListener("input", function () { furColor = furInput.value.toLowerCase(); render(); });
-    eyeInput.addEventListener("input", function () { eyeColor = eyeInput.value.toLowerCase(); render(); });
-    furOrig.addEventListener("click", function () { furColor = FUR_DEF; furInput.value = "#B8743C"; render(); });
-    eyeOrig.addEventListener("click", function () { eyeColor = EYE_DEF; eyeInput.value = "#6B7A3A"; render(); });
 
     // cat picker — only shown when there's more than one cat to choose from
     if (CATS.length > 1) {
@@ -345,7 +305,6 @@
           Array.prototype.forEach.call(catsWrap.children, function (x) { x.classList.remove("is-active"); });
           b.classList.add("is-active");
           loadCat(cat.src);
-          updateEyeRow();
         });
         catsWrap.appendChild(b);
       });
@@ -381,8 +340,7 @@
     rotSlider.addEventListener("input", function () { st.rot = +rotSlider.value; renderUpload(); });
     flipBtn.addEventListener("click", function () { st.flip = !st.flip; renderUpload(); });
     resetBtn.addEventListener("click", function () {
-      hatColor = HAT_DEF; furColor = FUR_DEF; eyeColor = EYE_DEF;
-      colorInput.value = "#2E5FD8"; furInput.value = "#B8743C"; eyeInput.value = "#6B7A3A";
+      hatColor = HAT_DEF; colorInput.value = "#2E5FD8";
       Array.prototype.forEach.call(swatchWrap.children, function (s) {
         s.classList.toggle("is-active", s.dataset.color === HAT_DEF);
       });
@@ -421,8 +379,8 @@
     });
 
     // init — force default colors (ignore any browser-restored input values)
-    colorInput.value = "#2E5FD8"; furInput.value = "#B8743C"; eyeInput.value = "#6B7A3A";
-    hatColor = HAT_DEF; furColor = FUR_DEF; eyeColor = EYE_DEF;
+    colorInput.value = "#2E5FD8";
+    hatColor = HAT_DEF;
     Array.prototype.forEach.call(swatchWrap.children, function (s) {
       s.classList.toggle("is-active", s.dataset.color === HAT_DEF);
     });
