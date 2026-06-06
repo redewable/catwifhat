@@ -459,19 +459,36 @@ a { color: inherit; text-decoration: none; }
 .pfp__cat:hover { transform: translateY(-2px); }
 .pfp__cat.is-active { border-color: var(--blue); }
 
-/* hat color picker */
+/* color pickers (hat / fur / eyes) */
 .pfp__colors {
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+.pfp__colorrow {
+  display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.55rem;
+  flex-wrap: wrap;
 }
 .pfp__colors-label {
-  width: 100%;
   font-family: var(--font-display);
   font-weight: 700;
   font-size: 0.95rem;
+  min-width: 42px;
 }
+.pfp__orig {
+  border: none;
+  background: var(--cream);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 0.78rem;
+  padding: 0.3rem 0.6rem;
+  border-radius: 999px;
+  cursor: pointer;
+}
+.pfp__orig:hover { background: var(--cream-d); }
 .pfp__swatches { display: flex; gap: 0.4rem; flex-wrap: wrap; }
 .pfp__swatch {
   width: 28px;

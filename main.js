@@ -147,20 +147,27 @@
     const dlBtn = document.getElementById("pfp-download");
     const colorInput = document.getElementById("pfp-hatcolor");
     const swatchWrap = document.getElementById("pfp-swatches");
-    const catOnly = document.querySelectorAll(".pfp__catonly");
+    const furInput = document.getElementById("pfp-furcolor");
+    const eyeInput = document.getElementById("pfp-eyecolor");
+    const eyeRow = document.getElementById("pfp-eyerow");
+    const furOrig = document.getElementById("pfp-fur-orig");
+    const eyeOrig = document.getElementById("pfp-eye-orig");
+    let catOnly = document.querySelectorAll(".pfp__catonly");
     const uploadOnly = document.querySelectorAll(".pfp__uploadonly");
 
-    const DEFAULT_COLOR = "#2e5fd8";
-    // Plain-background cats (recolor only touches the blue hat cleanly)
+    // "default" colors ≈ the cat's original colors → recolor for a channel is
+    // skipped while it matches, so the starting look is untouched.
+    const HAT_DEF = "#2e5fd8", FUR_DEF = "#b8743c", EYE_DEF = "#6b7a3a";
+    // The one official cat. `eyes` = normalized iris ellipses for eye recolor.
     const CATS = [
-      { src: "og-catwifhat.JPG", label: "Classic" },
-      { src: "cat-too-cool.JPG", label: "Shades" },
-      { src: "cat-wif-grillz.JPG", label: "Grillz" }
+      { src: "og-catwifhat.JPG", label: "catwifhat",
+        eyes: [ { cx: 0.435, cy: 0.634, r: 0.032 }, { cx: 0.600, cy: 0.634, r: 0.032 } ] }
     ];
 
     let mode = "cat";
-    let hatColor = DEFAULT_COLOR;
+    let hatColor = HAT_DEF, furColor = FUR_DEF, eyeColor = EYE_DEF;
     let catSrc = CATS[0].src;
+    let curCat = CATS[0];
     const catCache = {};
     let baseData = null; // cached pixels of the drawn cat (pre-recolor)
 
@@ -190,6 +197,7 @@
     /* ----- CAT MODE: recolor the blue hat in the chosen cat, per-pixel ----- */
     function loadCat(src) {
       catSrc = src;
+      curCat = CATS.filter(function (c) { return c.src === src; })[0] || CATS[0];
       const cached = catCache[src];
       if (cached && cached.complete && cached.naturalWidth) { drawCatBase(cached); return; }
       const img = cached || (catCache[src] = new Image());
@@ -203,24 +211,46 @@
       recolorCat();
       updateDownload();
     }
+    function lumOf(c) { return (0.299 * c.r + 0.587 * c.g + 0.114 * c.b) || 1; }
     function recolorCat() {
       if (!baseData) return;
-      if (hatColor === DEFAULT_COLOR) { cctx.putImageData(baseData, 0, 0); return; }
+      const noHat = hatColor === HAT_DEF;
+      const noFur = furColor === FUR_DEF;
+      const eyesOn = !!(curCat.eyes && eyeColor !== EYE_DEF);
+      if (noHat && noFur && !eyesOn) { cctx.putImageData(baseData, 0, 0); return; }
       const out = cctx.createImageData(SIZE, SIZE);
       out.data.set(baseData.data);
-      const d = out.data, t = hexToRgb(hatColor);
-      const tl = (0.299 * t.r + 0.587 * t.g + 0.114 * t.b) || 1;
+      const d = out.data;
+      const th = hexToRgb(hatColor), tf = hexToRgb(furColor), te = hexToRgb(eyeColor);
+      const lh = lumOf(th), lf = lumOf(tf), le = lumOf(te);
+      const eyes = eyesOn ? curCat.eyes.map(function (e) { return { x: e.cx * SIZE, y: e.cy * SIZE, r: e.r * SIZE }; }) : [];
       for (let i = 0; i < d.length; i += 4) {
         const r = d[i], g = d[i + 1], b = d[i + 2];
-        if (b > 90 && b - r > 18 && b - g > 10) { // blue hat pixel
-          const l = 0.299 * r + 0.587 * g + 0.114 * b, f = l / tl;
-          d[i] = Math.min(255, t.r * f);
-          d[i + 1] = Math.min(255, t.g * f);
-          d[i + 2] = Math.min(255, t.b * f);
+        // hat (royal blue)
+        if (b > 90 && b - r > 18 && b - g > 10) {
+          if (!noHat) { const f = (0.299 * r + 0.587 * g + 0.114 * b) / lh; d[i] = Math.min(255, th.r * f); d[i + 1] = Math.min(255, th.g * f); d[i + 2] = Math.min(255, th.b * f); }
+          continue;
+        }
+        // eyes (only inside the iris ellipses)
+        if (eyes.length) {
+          const p = i / 4, px = p % SIZE, py = (p / SIZE) | 0;
+          let inEye = false;
+          for (let k = 0; k < eyes.length; k++) { const dx = (px - eyes[k].x) / eyes[k].r, dy = (py - eyes[k].y) / eyes[k].r; if (dx * dx + dy * dy <= 1) { inEye = true; break; } }
+          if (inEye) {
+            const l = 0.299 * r + 0.587 * g + 0.114 * b;
+            if (l > 28 && l < 205) { const f = l / le; d[i] = Math.min(255, te.r * f); d[i + 1] = Math.min(255, te.g * f); d[i + 2] = Math.min(255, te.b * f); }
+            continue;
+          }
+        }
+        // fur (saturated warm tones; beige bg is too desaturated to match)
+        if (!noFur && r > g && g >= b && (r - b) > 45) {
+          const f = (0.299 * r + 0.587 * g + 0.114 * b) / lf;
+          d[i] = Math.min(255, tf.r * f); d[i + 1] = Math.min(255, tf.g * f); d[i + 2] = Math.min(255, tf.b * f);
         }
       }
       cctx.putImageData(out, 0, 0);
     }
+    function updateEyeRow() { eyeRow.hidden = !(mode === "cat" && curCat.eyes); }
 
     /* ----- UPLOAD MODE: overlay a recolorable hat sticker ----- */
     function buildTint() {
@@ -271,6 +301,7 @@
       pcanvas.style.cursor = (m === "upload") ? "grab" : "default";
       if (m === "cat") { loadCat(catSrc); }
       else { st = upState(); sizeSlider.value = 55; rotSlider.value = 0; buildTint(); renderUpload(); }
+      updateEyeRow();
       updateDownload();
     }
 
@@ -295,23 +326,35 @@
       swatchWrap.appendChild(b);
     });
     colorInput.addEventListener("input", function () { setColor(colorInput.value); });
+    furInput.addEventListener("input", function () { furColor = furInput.value.toLowerCase(); render(); });
+    eyeInput.addEventListener("input", function () { eyeColor = eyeInput.value.toLowerCase(); render(); });
+    furOrig.addEventListener("click", function () { furColor = FUR_DEF; furInput.value = "#B8743C"; render(); });
+    eyeOrig.addEventListener("click", function () { eyeColor = EYE_DEF; eyeInput.value = "#6B7A3A"; render(); });
 
-    // cat picker thumbnails
-    CATS.forEach(function (cat, i) {
-      const b = document.createElement("button");
-      b.type = "button";
-      b.className = "pfp__cat" + (i === 0 ? " is-active" : "");
-      b.title = cat.label;
-      const im = document.createElement("img");
-      im.src = cat.src; im.alt = cat.label; im.loading = "lazy";
-      b.appendChild(im);
-      b.addEventListener("click", function () {
-        Array.prototype.forEach.call(catsWrap.children, function (x) { x.classList.remove("is-active"); });
-        b.classList.add("is-active");
-        loadCat(cat.src);
+    // cat picker — only shown when there's more than one cat to choose from
+    if (CATS.length > 1) {
+      CATS.forEach(function (cat, i) {
+        const b = document.createElement("button");
+        b.type = "button";
+        b.className = "pfp__cat" + (i === 0 ? " is-active" : "");
+        b.title = cat.label;
+        const im = document.createElement("img");
+        im.src = cat.src; im.alt = cat.label; im.loading = "lazy";
+        b.appendChild(im);
+        b.addEventListener("click", function () {
+          Array.prototype.forEach.call(catsWrap.children, function (x) { x.classList.remove("is-active"); });
+          b.classList.add("is-active");
+          loadCat(cat.src);
+          updateEyeRow();
+        });
+        catsWrap.appendChild(b);
       });
-      catsWrap.appendChild(b);
-    });
+    } else {
+      // single cat: no picker needed (drop pfp__catonly so setMode won't reveal it)
+      catsWrap.classList.remove("pfp__catonly");
+      catsWrap.hidden = true;
+      catOnly = document.querySelectorAll(".pfp__catonly"); // refresh: exclude the hidden picker
+    }
 
     // hat sticker (for upload mode)
     hatImg.onload = function () { hatReady = true; buildTint(); if (mode === "upload") renderUpload(); };
@@ -338,9 +381,10 @@
     rotSlider.addEventListener("input", function () { st.rot = +rotSlider.value; renderUpload(); });
     flipBtn.addEventListener("click", function () { st.flip = !st.flip; renderUpload(); });
     resetBtn.addEventListener("click", function () {
-      hatColor = DEFAULT_COLOR; colorInput.value = "#2E5FD8";
+      hatColor = HAT_DEF; furColor = FUR_DEF; eyeColor = EYE_DEF;
+      colorInput.value = "#2E5FD8"; furInput.value = "#B8743C"; eyeInput.value = "#6B7A3A";
       Array.prototype.forEach.call(swatchWrap.children, function (s) {
-        s.classList.toggle("is-active", s.dataset.color === DEFAULT_COLOR);
+        s.classList.toggle("is-active", s.dataset.color === HAT_DEF);
       });
       if (mode === "cat") { loadCat(catSrc); }
       else { st = upState(); sizeSlider.value = 55; rotSlider.value = 0; buildTint(); renderUpload(); }
@@ -376,7 +420,12 @@
       }, "image/png");
     });
 
-    // init
+    // init — force default colors (ignore any browser-restored input values)
+    colorInput.value = "#2E5FD8"; furInput.value = "#B8743C"; eyeInput.value = "#6B7A3A";
+    hatColor = HAT_DEF; furColor = FUR_DEF; eyeColor = EYE_DEF;
+    Array.prototype.forEach.call(swatchWrap.children, function (s) {
+      s.classList.toggle("is-active", s.dataset.color === HAT_DEF);
+    });
     setMode("cat");
   }
 
