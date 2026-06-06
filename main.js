@@ -365,17 +365,38 @@
       sizeSlider.value = Math.round(st.scale * 100); renderUpload();
     }, { passive: false });
 
-    // download
+    // save / share
+    function downloadDataUrl(dataUrl) {
+      const a = document.createElement("a");
+      a.href = dataUrl; a.download = "my-catwifhat-pfp.png";
+      document.body.appendChild(a); a.click(); a.remove();
+    }
+    function dataUrlToFile(dataUrl, name) {
+      const arr = dataUrl.split(",");
+      const mime = (arr[0].match(/:(.*?);/) || [])[1] || "image/png";
+      const bstr = atob(arr[1]);
+      let n = bstr.length;
+      const u8 = new Uint8Array(n);
+      while (n--) u8[n] = bstr.charCodeAt(n);
+      return new File([u8], name, { type: mime });
+    }
     dlBtn.addEventListener("click", function () {
       if (dlBtn.getAttribute("aria-disabled") === "true") return;
-      pcanvas.toBlob(function (blob) {
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url; a.download = "my-catwifhat-pfp.png";
-        document.body.appendChild(a); a.click(); a.remove();
-        setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+      // Build the PNG synchronously so the share sheet still counts as a user tap (iOS).
+      const dataUrl = pcanvas.toDataURL("image/png");
+      const file = dataUrlToFile(dataUrl, "my-catwifhat-pfp.png");
+      // Native share sheet → iOS "Save Image" sends it to Photos; Android "Save to gallery".
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        navigator.share({ files: [file], title: "catwifhat", text: "my catwifhat 🐱🧢" })
+          .then(function () { showToast("saved!"); })
+          .catch(function (err) {
+            if (err && err.name === "AbortError") return; // user dismissed the sheet
+            downloadDataUrl(dataUrl);                      // fallback if share fails
+          });
+      } else {
+        downloadDataUrl(dataUrl);                          // desktop / unsupported
         showToast("PFP saved!");
-      }, "image/png");
+      }
     });
 
     // init — force default colors (ignore any browser-restored input values)
