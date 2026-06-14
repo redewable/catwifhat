@@ -144,6 +144,12 @@ a { color: inherit; text-decoration: none; }
   transition: color 0.15s ease;
 }
 .nav__links a:hover { color: var(--blue); }
+
+/* social logo icons (X / Telegram) */
+.ico { width: 1em; height: 1em; fill: currentColor; display: inline-block; vertical-align: -0.13em; }
+.nav__ico { display: inline-flex; align-items: center; font-size: 1.2rem; color: var(--ink); }
+.nav__ico:hover { color: var(--blue); }
+.footer__socials a .ico { width: 1.05em; height: 1.05em; vertical-align: -0.15em; }
 .nav__cta { font-size: 0.95rem; padding: 0.6rem 1.3rem; }
 
 .nav__burger {
