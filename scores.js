@@ -147,12 +147,13 @@
       track.innerHTML = '<span class="runner__item runner__item--empty">No key plays yet — hang tight.</span>';
       return;
     }
-    const piece = keyEvents.map(function (e) {
+    const items = keyEvents.map(function (e) {
       return '<span class="runner__item"><span class="runner__icon">' + e.icon + '</span>' +
         escapeHtml(e.name) + ' <b>' + escapeHtml(e.minute) + "</b></span>";
     }).join('<span class="runner__sep">•</span>');
-    // duplicate for a seamless loop
-    track.innerHTML = piece + '<span class="runner__sep">•</span>' + piece;
+    // Each half ends with a wide spacer so there's clear separation at the loop seam.
+    const half = items + '<span class="runner__gap" aria-hidden="true"></span>';
+    track.innerHTML = half + half; // duplicate for a seamless -50% loop
     track.style.animation = "none"; void track.offsetWidth;
     track.style.animationDuration = Math.max(14, keyEvents.length * 5) + "s";
     track.style.animationName = "runner-scroll";
