@@ -39,6 +39,7 @@
   function isToday(d) { return d.toDateString() === new Date().toDateString(); }
   function dayLabel(d) { try { return d.toLocaleDateString([], { weekday: "short", month: "short", day: "numeric" }); } catch (e) { return d.toDateString(); } }
   function fmtTime(d) { try { return d.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }); } catch (e) { return ""; } }
+  function tzAbbr(d) { try { const p = new Intl.DateTimeFormat([], { timeZoneName: "short" }).formatToParts(d).filter(function (x) { return x.type === "timeZoneName"; })[0]; return p ? p.value : ""; } catch (e) { return ""; } }
   function escapeHtml(s) { return String(s == null ? "" : s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
   function iconFor(t) { t = (t || "").toLowerCase(); if (t.indexOf("goal") > -1) return "⚽️"; if (t.indexOf("yellow") > -1) return "🟨"; if (t.indexOf("red") > -1) return "🟥"; if (t.indexOf("var") > -1) return "📺"; return "•"; }
   function isKey(t) { return /goal|yellow|red|penalt|var/i.test(t || ""); }
@@ -95,7 +96,7 @@
     let txt;
     if (live) txt = /ht|half/i.test(detail) ? "HALFTIME" : (status.displayClock || detail || "LIVE");
     else if (state === "post") txt = "FULL TIME";
-    else { const dt = new Date(ev.date); txt = !isNaN(dt) ? "Kickoff " + fmtTime(dt) : (detail || "Scheduled"); }
+    else { const dt = new Date(ev.date); txt = !isNaN(dt) ? "Kickoff " + fmtTime(dt) + " " + tzAbbr(dt) : (detail || "Scheduled"); }
     $("status-text").textContent = txt;
     $("sb-comp").textContent = COMP + " · " + ((ev.shortName || "").replace("@", "v"));
     renderPicks(ev, home, away);

@@ -1479,18 +1479,3 @@ a.sportcard:hover { transform: translateY(-4px); border-color: var(--ginger); bo
   min-width: 220px; cursor: pointer;
 }
 .champ__saved { margin-top: 0.7rem; font-family: var(--font-display); font-weight: 800; }
-
-/* Homepage live-score bar */
-.livebar {
-  display: flex; align-items: center; gap: 0.7rem; width: min(1080px, 92%);
-  margin: 0 auto clamp(1.5rem, 4vw, 2.6rem); padding: 0.7rem 1rem;
-  background: var(--ink); color: #fff; border-radius: 14px; text-decoration: none;
-  box-shadow: var(--shadow); transition: transform 0.15s ease;
-}
-.livebar:hover { transform: translateY(-2px); }
-.livebar__tag { display: inline-flex; align-items: center; gap: 0.35rem; font-size: 0.7rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: #ff7a6e; flex: none; }
-.livebar__tag .ticker__dot { background: #d8483c; }
-.livebar__txt { font-weight: 700; font-size: 0.95rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.livebar__txt b { color: var(--ginger); }
-.livebar__go { margin-left: auto; font-weight: 800; font-size: 0.85rem; opacity: 0.85; flex: none; }
-@media (max-width: 560px) { .livebar__go { display: none; } }
