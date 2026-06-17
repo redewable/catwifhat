@@ -223,7 +223,7 @@
     renderStats(summary, s.home, s.away, hC, aC);
     renderLineups(summary, s.home, s.away, hC, aC);
     const goals = events.filter(function (e) { return /goal/i.test(e.tt); }).length;
-    if (prevGoals != null && goals > prevGoals) { sb.classList.remove("goal-flash"); void sb.offsetWidth; sb.classList.add("goal-flash"); if (window.__wifToast) window.__wifToast("GOAL! ⚽️"); }
+    if (prevGoals != null && goals > prevGoals) { sb.classList.remove("goal-flash"); void sb.offsetWidth; sb.classList.add("goal-flash"); if (window.__wifToast) window.__wifToast("GOAL!"); }
     prevGoals = goals;
     $("updated").textContent = "Updated " + fmtTime(new Date()) + " · auto-refreshing";
   }
@@ -277,7 +277,7 @@
     document.querySelectorAll(".pick").forEach(function (f) { f.classList.toggle("is-picked", saved && f.dataset.side === saved); });
     updateShare(saved, home, away); refreshPoll(ev.id);
   }
-  function updateShare(saved, home, away) { const b = $("pick-share"); if (!b) return; if (!saved) { b.hidden = true; return; } const t = saved === "home" ? home : away; b.hidden = false; b.dataset.text = "I'm rolling with " + ((t.team || {}).displayName || "my team") + " 🐱⚽ in the #catwifhat Scorebox\n$WIF, but on $USDC\ncatwifusdc.com"; }
+  function updateShare(saved, home, away) { const b = $("pick-share"); if (!b) return; if (!saved) { b.hidden = true; return; } const t = saved === "home" ? home : away; b.hidden = false; b.dataset.text = "I'm rolling with " + ((t.team || {}).displayName || "my team") + " 🐱 in the #catwifhat Scorebox\n$WIF, but on $USDC\ncatwifusdc.com"; }
   document.querySelectorAll(".pick__choose").forEach(function (btn) {
     btn.addEventListener("click", function () {
       const side = btn.dataset.side;
@@ -312,7 +312,7 @@
     ctx.font = "800 30px 'Hanken Grotesk',Arial"; ctx.fillStyle = state === "in" ? "#d8483c" : "rgba(26,24,20,0.7)"; ctx.fillText((state === "in" ? "● " : "") + stt, W / 2, 398);
     ctx.fillStyle = "rgba(26,24,20,0.55)"; ctx.font = "700 26px 'Hanken Grotesk',Arial"; ctx.fillText("$WIF, but on $USDC · catwifusdc.com", W / 2, 582);
     let url; try { url = cv.toDataURL("image/png"); } catch (e) { if (window.__wifToast) window.__wifToast("Card not ready — try again"); return; }
-    const text = ((s.home.team || {}).displayName || "") + " vs " + ((s.away.team || {}).displayName || "") + " 🐱⚽ #catwifhat Scorebox\ncatwifusdc.com";
+    const text = ((s.home.team || {}).displayName || "") + " vs " + ((s.away.team || {}).displayName || "") + " 🐱 #catwifhat Scorebox\ncatwifusdc.com";
     const file = dataUrlToFile(url, "catwifhat-scorebox.png");
     if (navigator.canShare && navigator.canShare({ files: [file] })) navigator.share({ files: [file], text: text }).then(function () { if (window.__wifToast) window.__wifToast("shared!"); }).catch(function () {});
     else { const a = document.createElement("a"); a.href = url; a.download = "catwifhat-scorebox.png"; document.body.appendChild(a); a.click(); a.remove(); if (window.__wifToast) window.__wifToast("Card saved — drop it on X!"); }
