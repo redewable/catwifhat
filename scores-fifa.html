@@ -4,23 +4,21 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>catwifhat — World Cup Scorebox</title>
-  <meta name="description" content="The catwifhat World Cup Scorebox — every match live and auto-updating: score, match clock, team-by-team key plays and live stats. Who you got?" />
+  <meta name="description" content="The catwifhat World Cup hub — standings, rankings, bracket, today's matches, calendar, and call-it-now champion picks. Sports are better with cats." />
   <meta name="theme-color" content="#2E5FD8" />
   <link rel="icon" type="image/png" href="favicon.png" />
   <link rel="apple-touch-icon" href="apple-touch-icon.png" />
-
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://www.catwifusdc.com/scores-fifa.html" />
   <meta property="og:title" content="catwifhat — World Cup Scorebox" />
-  <meta property="og:description" content="Sports are better with cats. Every World Cup match, live. Who you got?" />
+  <meta property="og:description" content="Standings, rankings, bracket, today's matches & more — with cats." />
   <meta property="og:image" content="https://www.catwifusdc.com/fifa-matchup.jpg" />
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:image" content="https://www.catwifusdc.com/fifa-matchup.jpg" />
-
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@600;700;800;900&family=Hanken+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css?v=18" />
+  <link rel="stylesheet" href="styles.css?v=19" />
 </head>
 <body>
 
@@ -28,10 +26,6 @@
     <symbol id="ico-x" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" /></symbol>
     <symbol id="ico-tg" viewBox="0 0 24 24"><path d="M21.94 4.78c.28-1.12-.42-1.63-1.15-1.3L4.82 9.64c-1.09.44-1.08 1.05-.2 1.3l4.1 1.28 1.6 5.13c.2.55.36.76.75.76.38 0 .55-.18.76-.4l1.92-1.86 3.98 2.94c.73.4 1.26.2 1.45-.68l2.62-12.34zm-5.1 3.07L9.4 12.5c-.37.23-.7.36-.83.78l-.28 4.23c-.04.4-.2.42-.4.42l.28-4.23 7.68-6.92c.34-.31-.07-.46-.52-.19z" /></symbol>
     <symbol id="ic-goal" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"><circle cx="12" cy="12" r="9.3"/><path d="M12 6.2l3.7 2.7-1.4 4.4H9.7L8.3 8.9z" fill="currentColor" stroke="none"/><path d="M12 6.2V3.2M15.7 8.9l2.7-1.2M14.3 13.3l2.1 2.6M9.7 13.3l-2.1 2.6M8.3 8.9 5.6 7.7"/></g></symbol>
-    <symbol id="ic-card" viewBox="0 0 24 24"><rect x="6.5" y="3" width="11" height="18" rx="2.2" fill="currentColor"/></symbol>
-    <symbol id="ic-var" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="12" rx="2"/><path d="M8 21h8"/></g></symbol>
-    <symbol id="ic-trophy" viewBox="0 0 24 24"><path fill="currentColor" d="M18 2H6v2H2v4a4 4 0 0 0 4 4 6 6 0 0 0 5 4.9V21H8v2h8v-2h-3v-4.1A6 6 0 0 0 18 12a4 4 0 0 0 4-4V4h-4V2zM6 10a2 2 0 0 1-2-2V6h2v4zm14-2a2 2 0 0 1-2 2V6h2v2z"/></symbol>
-    <symbol id="ic-camera" viewBox="0 0 24 24"><path fill="currentColor" d="M9 4l-1.4 2H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-3.6L15 4H9zm3 4.5a5 5 0 1 1 0 10 5 5 0 0 1 0-10zm0 2a3 3 0 1 0 0 6 3 3 0 0 0 0-6z"/></symbol>
   </svg>
 
   <header class="nav" id="top">
@@ -56,132 +50,57 @@
     <div class="section__wrap">
       <a class="scores__back" href="scores.html">‹ All sports</a>
       <h1 class="scores__title reveal">World Cup Scorebox</h1>
-      <p class="scores__sub reveal">Sports are better with cats. <img class="emo" src="icon-cat.webp" alt="cat" /> Every match, live and auto-updating — score, match clock, team-by-team key plays and live stats.</p>
+      <p class="scores__sub reveal">Sports are better with cats. <img class="emo" src="icon-cat.webp" alt="cat" /> Standings, rankings, today's matches and more — tap any game for full live detail.</p>
 
-      <div class="datenav reveal">
-        <button class="datenav__btn" id="date-prev" type="button" aria-label="Previous day">‹</button>
-        <span class="datenav__label" id="date-label">—</span>
-        <button class="datenav__btn" id="date-next" type="button" aria-label="Next day">›</button>
-        <button class="datenav__today" id="date-today" type="button">Today</button>
+      <div class="tabs reveal" id="tabs" role="tablist">
+        <button class="tab" data-tab="today" role="tab">Today</button>
+        <button class="tab" data-tab="standings" role="tab">Standings</button>
+        <button class="tab" data-tab="rankings" role="tab">Rankings</button>
+        <button class="tab" data-tab="bracket" role="tab">Bracket</button>
+        <button class="tab" data-tab="calendar" role="tab">Calendar</button>
+        <button class="tab" data-tab="callit" role="tab">Call it now</button>
       </div>
 
-      <!-- Featured match -->
-      <div class="scoreboard reveal" id="sb" data-state="loading">
-        <div class="scoreboard__comp" id="sb-comp">FIFA World Cup 2026</div>
-        <div class="scoreboard__row">
-          <div class="team team--home">
-            <img class="team__cat" id="home-cat" alt="" width="1024" height="1536" />
-            <span class="team__name" id="home-name">—</span>
-          </div>
-          <div class="scoreboard__center">
-            <div class="scoreboard__score">
-              <span class="scoreboard__num" id="home-score">–</span>
-              <span class="scoreboard__dash">:</span>
-              <span class="scoreboard__num" id="away-score">–</span>
-            </div>
-            <div class="scoreboard__status" id="match-status">
-              <span class="livedot" id="livedot" hidden></span>
-              <span id="status-text">Loading…</span>
-            </div>
-          </div>
-          <div class="team team--away">
-            <img class="team__cat" id="away-cat" alt="" width="1024" height="1536" />
-            <span class="team__name" id="away-name">—</span>
-          </div>
-        </div>
-        <!-- Live match stats (replaces the old key-play runner) -->
-        <div class="matchstats" id="matchstats"><div class="matchstats__pending">Loading…</div></div>
-        <p class="scoreboard__updated" id="updated"></p>
-        <button class="sb__share" id="sb-share" type="button"><svg class="ic" aria-hidden="true"><use href="#ic-camera" /></svg> Share this match card</button>
+      <div class="tabpanel reveal in" data-panel="today">
+        <div class="matches" id="matches-today"><p class="matches__empty">Loading matches…</p></div>
       </div>
 
-      <!-- Key plays, split by team -->
-      <div class="plays reveal">
-        <h2 class="scores__h2">Key plays</h2>
-        <div class="plays__cols">
-          <div class="plays__col">
-            <div class="plays__colhead" id="plays-home-head"></div>
-            <ol class="plays__list" id="plays-home-list"><li class="plays__empty">…</li></ol>
-          </div>
-          <div class="plays__col">
-            <div class="plays__colhead" id="plays-away-head"></div>
-            <ol class="plays__list" id="plays-away-list"><li class="plays__empty">…</li></ol>
-          </div>
-        </div>
-      </div>
-
-      <!-- Who you got -->
-      <div class="whoyougot reveal">
-        <h2 class="scores__h2">Who you got? <span class="whoyougot__hint">Pick your cat &amp; rep it.</span></h2>
-        <div class="whoyougot__grid">
-          <figure class="pick" id="pick-home" data-side="home">
-            <img id="pick-home-img" alt="" />
-            <figcaption>
-              <span class="pick__name" id="pick-home-name">—</span>
-              <a class="btn btn--ginger pick__dl" id="pick-home-dl" hidden>Download PFP</a>
-              <span class="pick__soon" id="pick-home-soon" hidden>cat PFP soon 🎨</span>
-            </figcaption>
-            <button class="pick__choose" type="button" data-side="home">I'm rolling with this cat</button>
-          </figure>
-          <figure class="pick" id="pick-away" data-side="away">
-            <img id="pick-away-img" alt="" />
-            <figcaption>
-              <span class="pick__name" id="pick-away-name">—</span>
-              <a class="btn btn--ginger pick__dl" id="pick-away-dl" hidden>Download PFP</a>
-              <span class="pick__soon" id="pick-away-soon" hidden>cat PFP soon 🎨</span>
-            </figcaption>
-            <button class="pick__choose" type="button" data-side="away">I'm rolling with this cat</button>
-          </figure>
-        </div>
-        <!-- Global vote bar (only shows once the poll backend reports counts) -->
-        <div class="poll" id="poll" hidden>
-          <div class="poll__bar">
-            <span class="poll__fill poll__fill--home" id="poll-home-fill"></span>
-            <span class="poll__fill poll__fill--away" id="poll-away-fill"></span>
-          </div>
-          <div class="poll__labels">
-            <span id="poll-home-pct">—</span>
-            <span class="poll__total" id="poll-total"></span>
-            <span id="poll-away-pct">—</span>
-          </div>
-        </div>
-        <button class="btn btn--blue pick__share" id="pick-share" type="button" hidden>
-          Share your pick on X <svg class="ico" aria-hidden="true"><use href="#ico-x" /></svg>
-        </button>
-      </div>
-
-      <!-- Lineups -->
-      <div class="lineups reveal" id="lineups" hidden>
-        <h2 class="scores__h2">Starting XI <span class="whoyougot__hint" id="lineups-sub"></span></h2>
-        <div class="lineups__cols">
-          <div class="lineups__col"><div class="lineups__head" id="lineup-home-head"></div><ul class="lineups__list" id="lineup-home"></ul></div>
-          <div class="lineups__col"><div class="lineups__head" id="lineup-away-head"></div><ul class="lineups__list" id="lineup-away"></ul></div>
-        </div>
-      </div>
-
-      <!-- Group standings (all 12 groups) -->
-      <div class="standings reveal" id="standings">
-        <h2 class="scores__h2">Group standings</h2>
+      <div class="tabpanel" data-panel="standings" hidden>
         <div class="groups" id="groups-wrap"><p class="matches__empty">Loading groups…</p></div>
       </div>
 
-      <!-- Predict the champion -->
-      <div class="champ reveal">
+      <div class="tabpanel" data-panel="rankings" hidden>
+        <div class="rankings" id="rankings-wrap"><p class="matches__empty">Loading rankings…</p></div>
+        <p class="scores__note" id="rankings-note" hidden>Team rankings are live from group results. Player leaders (top scorers, goalkeepers) light up once the feed publishes tournament stats.</p>
+      </div>
+
+      <div class="tabpanel" data-panel="bracket" hidden>
+        <div class="bracket-ph" id="bracket-wrap">
+          <div class="bracket-ph__inner">
+            <h3>The bracket sets after the group stage.</h3>
+            <p>Top two from each of the 12 groups (plus the best third-placed teams) advance to the Round of 32. This tab fills in automatically once the knockouts are seeded.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="tabpanel" data-panel="calendar" hidden>
+        <div class="datenav">
+          <button class="datenav__btn" id="cal-prev" type="button" aria-label="Previous day">‹</button>
+          <span class="datenav__label" id="cal-label">—</span>
+          <button class="datenav__btn" id="cal-next" type="button" aria-label="Next day">›</button>
+          <button class="datenav__today" id="cal-today" type="button">Today</button>
+        </div>
+        <div class="matches" id="cal-matches"><p class="matches__empty">Loading…</p></div>
+      </div>
+
+      <div class="tabpanel" data-panel="callit" hidden>
         <h2 class="scores__h2">Call it now <img class="emo" src="acc-trophy.webp" alt="trophy" /></h2>
         <p class="champ__sub">Who lifts the cup? Lock your pick and rep it.</p>
         <div class="champ__row">
-          <select id="champ-select" class="champ__select" aria-label="Pick the World Cup champion">
-            <option value="">Pick a team…</option>
-          </select>
-          <button class="btn btn--blue champ__share" id="champ-share" type="button" hidden>Share <img class="emo" src="acc-trophy.webp" alt="trophy" /></button>
+          <select id="champ-select" class="champ__select" aria-label="Pick the World Cup champion"><option value="">Pick a team…</option></select>
+          <button class="btn btn--blue champ__share" id="champ-share" type="button" hidden>Share <img class="emo" src="acc-trophy.webp" alt="" /></button>
         </div>
         <p class="champ__saved" id="champ-saved" hidden></p>
-      </div>
-
-      <!-- All matches -->
-      <div class="allmatches reveal">
-        <h2 class="scores__h2">All matches <span class="whoyougot__hint" id="matches-day"></span></h2>
-        <div class="matches" id="matches"><p class="matches__empty">Loading matches…</p></div>
       </div>
     </div>
   </section>
@@ -193,10 +112,7 @@
         <a href="https://t.me/catwifhattheportal" target="_blank" rel="noopener"><svg class="ico" aria-hidden="true"><use href="#ico-tg" /></svg> Telegram</a>
         <a href="index.html">Home</a>
       </div>
-      <p class="footer__disclaimer">
-        Scores are sourced live from a public sports feed and provided for fun. catwifhat ($WIF)
-        is an independent meme project, not affiliated with FIFA, ESPN, dogwifhat, or any team. Nothing here is financial advice.
-      </p>
+      <p class="footer__disclaimer">Scores are sourced live from a public sports feed and provided for fun. catwifhat ($WIF) is an independent meme project, not affiliated with FIFA, ESPN, dogwifhat, or any team. Nothing here is financial advice.</p>
       <p class="footer__copy">© 2026 catwifhat. made by the litter. <img class="emo" src="icon-cat.webp" alt="cat" /><img class="emo" src="acc-beanie.webp" alt="hat" /></p>
     </div>
   </footer>
@@ -205,19 +121,11 @@
 
   <script>
     window.SCORE_CONFIG = {
-      sport: "soccer",
-      league: "fifa.world",
-      compShort: "FIFA World Cup 2026",
-      teamCats: {
-        POR: "portugal-cat", COD: "congo-dr-cat",
-        ENG: "england-cat", CRO: "croatia-cat",
-        GHA: "ghana-cat", PAN: "panama-cat",
-        UZB: "uzbekistan-cat", COL: "columbia-cat",
-        AUT: "austria-cat", JOR: "jordan-cat"
-      }
+      sport: "soccer", league: "fifa.world", compShort: "FIFA World Cup 2026",
+      teamCats: { POR:"portugal-cat", COD:"congo-dr-cat", ENG:"england-cat", CRO:"croatia-cat", GHA:"ghana-cat", PAN:"panama-cat", UZB:"uzbekistan-cat", COL:"columbia-cat", AUT:"austria-cat", JOR:"jordan-cat" }
     };
   </script>
   <script src="main.js?v=17"></script>
-  <script src="scores-engine.js?v=7"></script>
+  <script src="scores-engine.js?v=9"></script>
 </body>
 </html>

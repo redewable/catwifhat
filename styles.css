@@ -1534,3 +1534,31 @@ a.sportcard:hover { transform: translateY(-4px); border-color: var(--ginger); bo
 .emo--xl { height: 3.2em; }
 .card__icon .emo { height: 1em; }
 .champs__badge .emo--lg { height: 1.4em; }
+
+/* ---- FIFA hub: tabs, rankings, bracket placeholder ---- */
+.tabs { display: flex; flex-wrap: wrap; gap: 0.4rem; margin: 0 0 1.6rem; }
+.tab {
+  border: 2px solid var(--cream-d); background: var(--white); color: var(--ink);
+  font-family: var(--font-body); font-weight: 700; font-size: 0.92rem;
+  padding: 0.5rem 1.05rem; border-radius: 999px; cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease, transform 0.12s ease;
+}
+.tab:hover { border-color: var(--ginger); transform: translateY(-2px); }
+.tab.is-active { background: var(--blue); border-color: var(--blue); color: var(--white); }
+
+.rankings { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1rem; }
+.rankcard { background: var(--white); border-radius: 14px; box-shadow: var(--shadow); overflow: hidden; }
+.rankcard__h { font-family: var(--font-display); font-weight: 800; padding: 0.7rem 0.9rem; background: var(--cream); }
+.rankcard__h span { font-weight: 700; font-size: 0.7rem; opacity: 0.5; text-transform: uppercase; letter-spacing: 0.04em; margin-left: 0.3rem; }
+.rank__list { list-style: none; margin: 0; padding: 0; }
+.rank__list li { display: flex; align-items: center; gap: 0.6rem; padding: 0.45rem 0.9rem; }
+.rank__list li + li { border-top: 1px solid var(--cream-d); }
+.rank__pos { font-family: var(--font-display); font-weight: 800; min-width: 1.4rem; opacity: 0.5; text-align: center; }
+.rank__badge { width: 26px; height: 26px; border-radius: 50%; object-fit: cover; object-position: center top; background: var(--cream); flex: none; }
+.rank__badge--flag { object-fit: contain; padding: 2px; background: var(--white); }
+.rank__name { flex: 1; min-width: 0; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rank__val { font-family: var(--font-display); font-weight: 800; }
+
+.bracket-ph { background: var(--white); border-radius: var(--radius); box-shadow: var(--shadow); padding: clamp(1.6rem, 5vw, 3.2rem); text-align: center; }
+.bracket-ph__inner h3 { font-family: var(--font-display); font-weight: 800; font-size: clamp(1.2rem, 4vw, 1.6rem); margin-bottom: 0.7rem; }
+.bracket-ph__inner p { opacity: 0.72; max-width: 52ch; margin: 0 auto; line-height: 1.5; }
