@@ -214,7 +214,7 @@
     $("pick-" + side + "-name").textContent = name;
     const dl = $("pick-" + side + "-dl");
     const soon = $("pick-" + side + "-soon");
-    if (im.isCat) { dl.hidden = false; soon.hidden = true; dl.href = im.base + ".PNG"; dl.setAttribute("download", im.base + "wifhat-pfp.png"); }
+    if (im.isCat) { dl.hidden = false; soon.hidden = true; dl.href = im.base + ".png"; dl.setAttribute("download", im.base + "wifhat-pfp.png"); }
     else { dl.hidden = true; soon.hidden = false; }
   }
   function renderPicks(ev, home, away) {
