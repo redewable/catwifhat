@@ -41,7 +41,15 @@
   function fmtTime(d) { try { return d.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }); } catch (e) { return ""; } }
   function tzAbbr(d) { try { const p = new Intl.DateTimeFormat([], { timeZoneName: "short" }).formatToParts(d).filter(function (x) { return x.type === "timeZoneName"; })[0]; return p ? p.value : ""; } catch (e) { return ""; } }
   function escapeHtml(s) { return String(s == null ? "" : s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
-  function iconFor(t) { t = (t || "").toLowerCase(); if (t.indexOf("goal") > -1) return "⚽️"; if (t.indexOf("yellow") > -1) return "🟨"; if (t.indexOf("red") > -1) return "🟥"; if (t.indexOf("var") > -1) return "📺"; return "•"; }
+  function svgIc(id, extra) { return '<svg class="ic' + (extra ? " " + extra : "") + '" aria-hidden="true"><use href="#' + id + '"/></svg>'; }
+  function iconFor(t) {
+    t = (t || "").toLowerCase();
+    if (t.indexOf("goal") > -1) return svgIc("ic-goal");
+    if (t.indexOf("yellow") > -1) return svgIc("ic-card", "ic--yellow");
+    if (t.indexOf("red") > -1) return svgIc("ic-card", "ic--red");
+    if (t.indexOf("var") > -1) return svgIc("ic-var");
+    return "•";
+  }
   function isKey(t) { return /goal|yellow|red|penalt|var/i.test(t || ""); }
   function colorOf(team, fallback) {
     const c = (team || {}).color;
@@ -123,7 +131,6 @@
 
     renderPlayColumns(home, away, homeColor, awayColor, events);
     renderStats(summary, home, away, homeColor, awayColor);
-    renderStandings(summary);
     renderLineups(summary, home, away, homeColor, awayColor);
 
     const goals = events.filter(function (e) { return /goal/i.test(e.typeText); }).length;
@@ -346,21 +353,38 @@
     pollScoreboard();
   }
 
-  /* ---------- group standings ---------- */
-  function renderStandings(summary) {
-    const wrap = $("standings");
-    if (!wrap) return;
-    const g = ((summary.standings || {}).groups || [])[0];
-    const entries = g && g.standings && g.standings.entries;
-    if (!entries || !entries.length) { wrap.hidden = true; return; }
-    $("standings-body").innerHTML = entries.map(function (e) {
-      const get = function (n) { const s = (e.stats || []).filter(function (x) { return x.name === n; })[0]; return s ? s.displayValue : "0"; };
-      const name = typeof e.team === "string" ? e.team : (e.team || {}).displayName || "";
-      const logo = ((e.logo || [])[0] || {}).href || "";
-      return "<tr><td class=\"standings__team\"><img class=\"standings__flag\" src=\"" + escapeHtml(logo) + "\" alt=\"\" loading=\"lazy\" />" + escapeHtml(name) + "</td>" +
-        "<td>" + get("gamesPlayed") + "</td><td>" + get("wins") + "</td><td>" + get("ties") + "</td><td>" + get("losses") + "</td><td>" + get("pointDifferential") + "</td><td class=\"standings__pts\">" + get("points") + "</td></tr>";
+  /* ---------- group standings (all 12 groups) ---------- */
+  const STANDINGS_URL = "https://site.api.espn.com/apis/v2/sports/soccer/" + LEAGUE + "/standings";
+  let groupsTimer = null;
+  function badgeFor(team) {
+    const ab = (team || {}).abbreviation || "";
+    if (TEAM_CATS[ab]) return { src: TEAM_CATS[ab] + ".webp", flag: false };
+    const logo = (team || {}).logo || (((team || {}).logos || [])[0] || {}).href || "";
+    return { src: logo, flag: true };
+  }
+  function groupTable(child) {
+    const entries = (child.standings || {}).entries || [];
+    const rows = entries.map(function (e) {
+      const get = function (ab) { const s = (e.stats || []).filter(function (x) { return x.abbreviation === ab; })[0]; return s ? s.displayValue : "0"; };
+      const t = e.team || {};
+      const b = badgeFor(t);
+      return "<tr><td class=\"gtbl__team\"><img class=\"gtbl__badge" + (b.flag ? " gtbl__badge--flag" : "") + "\" src=\"" + escapeHtml(b.src) + "\" alt=\"\" loading=\"lazy\" /><span>" + escapeHtml(t.abbreviation || t.displayName || "") + "</span></td>" +
+        "<td>" + get("GP") + "</td><td>" + get("W") + "</td><td>" + get("D") + "</td><td>" + get("L") + "</td><td>" + get("GD") + "</td><td class=\"gtbl__pts\">" + get("P") + "</td></tr>";
     }).join("");
-    wrap.hidden = false;
+    return "<div class=\"gtbl\"><div class=\"gtbl__name\">" + escapeHtml(child.name || "Group") + "</div>" +
+      "<table><thead><tr><th class=\"gtbl__teamh\">Team</th><th>P</th><th>W</th><th>D</th><th>L</th><th>GD</th><th>Pts</th></tr></thead><tbody>" + rows + "</tbody></table></div>";
+  }
+  function fetchGroups() {
+    fetch(STANDINGS_URL, { cache: "no-store" })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (d) {
+        const children = (d && d.children) || [];
+        if (!children.length) { $("groups-wrap").innerHTML = "<p class=\"matches__empty\">Standings unavailable.</p>"; return; }
+        $("groups-wrap").innerHTML = children.map(groupTable).join("");
+      })
+      .catch(function () { $("groups-wrap").innerHTML = "<p class=\"matches__empty\">Standings unavailable.</p>"; });
+    clearTimeout(groupsTimer);
+    groupsTimer = setTimeout(fetchGroups, 300000); // refresh every 5 min
   }
 
   /* ---------- lineups (starting XI) ---------- */
@@ -522,7 +546,11 @@
   $("date-prev").addEventListener("click", function () { shiftDay(-1); });
   $("date-next").addEventListener("click", function () { shiftDay(1); });
   $("date-today").addEventListener("click", function () { currentDate = new Date(); reload(); });
-  document.addEventListener("visibilitychange", function () { if (document.hidden) { clearTimeout(sbTimer); clearTimeout(ftTimer); ftTimer = null; } else { pollScoreboard(); } });
+  document.addEventListener("visibilitychange", function () {
+    if (document.hidden) { clearTimeout(sbTimer); clearTimeout(ftTimer); clearTimeout(groupsTimer); ftTimer = null; }
+    else { pollScoreboard(); fetchGroups(); }
+  });
 
+  fetchGroups();
   reload();
 })();

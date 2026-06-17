@@ -1479,3 +1479,51 @@ a.sportcard:hover { transform: translateY(-4px); border-color: var(--ginger); bo
   min-width: 220px; cursor: pointer;
 }
 .champ__saved { margin-top: 0.7rem; font-family: var(--font-display); font-weight: 800; }
+
+/* ---- Scores: all-groups standings ---- */
+.groups { display: grid; grid-template-columns: repeat(auto-fill, minmax(330px, 1fr)); gap: 1rem; }
+.gtbl { background: var(--white); border-radius: 14px; box-shadow: var(--shadow); overflow: hidden; }
+.gtbl__name { font-family: var(--font-display); font-weight: 800; font-size: 0.95rem; padding: 0.65rem 0.9rem; background: var(--cream); }
+.gtbl table { width: 100%; border-collapse: collapse; }
+.gtbl th, .gtbl td { padding: 0.5rem 0.4rem; text-align: center; font-size: 0.86rem; }
+.gtbl thead th { font-size: 0.64rem; text-transform: uppercase; letter-spacing: 0.03em; opacity: 0.5; }
+.gtbl__teamh, .gtbl__team { text-align: left !important; padding-left: 0.7rem !important; }
+.gtbl__team { display: flex; align-items: center; gap: 0.45rem; font-weight: 800; }
+.gtbl__badge { width: 24px; height: 24px; border-radius: 50%; object-fit: cover; object-position: center top; background: var(--cream); flex: none; }
+.gtbl__badge--flag { object-fit: contain; padding: 2px; background: var(--white); }
+.gtbl tbody tr + tr { border-top: 1px solid var(--cream-d); }
+.gtbl__pts { font-family: var(--font-display); font-weight: 800; }
+
+/* ---- Inline SVG icon base (replaces emoji) ---- */
+.ic { width: 1em; height: 1em; fill: currentColor; display: inline-block; vertical-align: -0.13em; }
+.ic--lg { width: 1.3em; height: 1.3em; vertical-align: -0.22em; }
+.ic--xl { width: 2.4em; height: 2.4em; }
+
+/* ---- Sport hub: champions card badge ---- */
+.sportcard__badge--champ { color: #b8731b; background: #ffe6c2; }
+
+/* ---- NBA champions page ---- */
+.champs { text-align: center; padding: clamp(1rem, 4vw, 2.5rem) 0 1rem; }
+.champs__badge {
+  display: inline-flex; align-items: center; gap: 0.45rem;
+  background: #ffe6c2; color: #b8731b; font-weight: 800; font-size: 0.85rem;
+  text-transform: uppercase; letter-spacing: 0.06em; padding: 0.4rem 1rem; border-radius: 999px;
+}
+.champs__title { font-family: var(--font-display); font-weight: 900; font-size: clamp(2rem, 7vw, 4rem); line-height: 1.05; margin: 1rem 0 0.6rem; }
+.champs__team { color: #f58426; }
+.champs__sub { font-size: 1.1rem; opacity: 0.8; margin-bottom: 1.8rem; }
+.champs__cat {
+  width: min(420px, 88%); margin: 0 auto; background: var(--white);
+  border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden;
+  border: 3px solid #f58426;
+}
+.champs__cat > img { width: 100%; height: auto; display: block; background: var(--cream); }
+.champs__placeholder { display: flex; flex-direction: column; align-items: center; gap: 0.6rem; padding: 3rem 1rem; color: #b8731b; font-weight: 700; }
+.champs__cat figcaption { padding: 1rem; }
+
+/* SVG key-play / card icon colors */
+.ic--yellow { color: #f5c518; }
+.ic--red { color: #d8483c; }
+.play__icon .ic, .runner__icon .ic { width: 1.15em; height: 1.15em; vertical-align: -0.18em; }
+.sb__share .ic, .champ__share .ic, .scores__h2 .ic { vertical-align: -0.14em; }
+.sportcard__title .ic { width: 1.1em; height: 1.1em; vertical-align: -0.12em; margin-right: 0.15em; }
