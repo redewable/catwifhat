@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>catwifhat — Scores</title>
+  <meta name="description" content="catwifhat scores — sports are better with cats. Live, auto-updating scoreboard and key plays. Who you got?" />
+  <meta name="theme-color" content="#2E5FD8" />
+  <link rel="icon" type="image/png" href="favicon.png" />
+  <link rel="apple-touch-icon" href="apple-touch-icon.png" />
+
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://www.catwifusdc.com/scores.html" />
+  <meta property="og:title" content="catwifhat — Scores" />
+  <meta property="og:description" content="Sports are better with cats. Live scoreboard + key plays. Who you got?" />
+  <meta property="og:image" content="https://www.catwifusdc.com/fifa-matchup.jpg" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:image" content="https://www.catwifusdc.com/fifa-matchup.jpg" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@600;700;800;900&family=Hanken+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css?v=9" />
+</head>
+<body>
+
+  <!-- Icon sprite: X (Twitter) + Telegram logos -->
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+    <symbol id="ico-x" viewBox="0 0 24 24">
+      <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+    </symbol>
+    <symbol id="ico-tg" viewBox="0 0 24 24">
+      <path d="M21.94 4.78c.28-1.12-.42-1.63-1.15-1.3L4.82 9.64c-1.09.44-1.08 1.05-.2 1.3l4.1 1.28 1.6 5.13c.2.55.36.76.75.76.38 0 .55-.18.76-.4l1.92-1.86 3.98 2.94c.73.4 1.26.2 1.45-.68l2.62-12.34zm-5.1 3.07L9.4 12.5c-.37.23-.7.36-.83.78l-.28 4.23c-.04.4-.2.42-.4.42l.28-4.23 7.68-6.92c.34-.31-.07-.46-.52-.19z" />
+    </symbol>
+  </svg>
+
+  <!-- STICKY NAV -->
+  <header class="nav" id="top">
+    <div class="nav__inner">
+      <a href="index.html" class="nav__brand">catwifhat</a>
+      <nav class="nav__links" aria-label="Primary">
+        <a href="index.html#about">About</a>
+        <a href="index.html#how-to-buy">How to Buy</a>
+        <a href="index.html#memes">Memes</a>
+        <a href="index.html#pfp-maker">PFP</a>
+        <a href="scores.html" class="is-current" aria-current="page">Scores</a>
+        <a href="index.html#trade">Trade</a>
+        <a class="nav__ico" href="https://t.me/catwifhattheportal" target="_blank" rel="noopener" aria-label="Telegram">
+          <svg class="ico" aria-hidden="true"><use href="#ico-tg" /></svg>
+        </a>
+        <a class="nav__ico" href="https://x.com/catwifusdc" target="_blank" rel="noopener" aria-label="X (Twitter)">
+          <svg class="ico" aria-hidden="true"><use href="#ico-x" /></svg>
+        </a>
+      </nav>
+      <a href="https://pump.fun/Hjj93YiyaFYY8zY2EW6FM2i2gd4rxzhoLCLFabrRpump"
+         class="btn btn--blue nav__cta" target="_blank" rel="noopener">Buy $WIF</a>
+      <button class="nav__burger" id="burger" aria-label="Toggle menu" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </header>
+
+  <!-- SCORES -->
+  <section class="scores">
+    <div class="section__wrap">
+      <h1 class="scores__title reveal">The Scorebox</h1>
+      <p class="scores__sub reveal">Sports are better with cats. 🐱⚽ Live and auto-updating — score, match clock and key plays, straight from the pitch.</p>
+
+      <!-- Live scoreboard -->
+      <div class="scoreboard reveal" id="sb" data-state="loading">
+        <div class="scoreboard__comp">FIFA World Cup 2026 · Group stage</div>
+
+        <div class="scoreboard__row">
+          <!-- HOME -->
+          <div class="team team--home">
+            <img class="team__cat" id="home-cat" src="portugal-cat.webp" alt="Portugal cat" width="1024" height="1536" />
+            <span class="team__name" id="home-name">Portugal</span>
+          </div>
+
+          <!-- CENTER: score + status -->
+          <div class="scoreboard__center">
+            <div class="scoreboard__score">
+              <span class="scoreboard__num" id="home-score">–</span>
+              <span class="scoreboard__dash">:</span>
+              <span class="scoreboard__num" id="away-score">–</span>
+            </div>
+            <div class="scoreboard__status" id="match-status">
+              <span class="livedot" id="livedot" hidden></span>
+              <span id="status-text">Loading…</span>
+            </div>
+          </div>
+
+          <!-- AWAY -->
+          <div class="team team--away">
+            <img class="team__cat" id="away-cat" src="congo-dr-cat.webp" alt="Congo DR cat" width="1024" height="1536" />
+            <span class="team__name" id="away-name">Congo DR</span>
+          </div>
+        </div>
+
+        <!-- Key-play runner (auto-scrolling ticker) -->
+        <div class="runner" id="runner" aria-label="Key plays">
+          <div class="runner__track" id="runner-track">
+            <span class="runner__item runner__item--empty">Waiting for kickoff…</span>
+          </div>
+        </div>
+        <p class="scoreboard__updated" id="updated"></p>
+      </div>
+
+      <!-- Key plays timeline -->
+      <div class="plays reveal">
+        <h2 class="scores__h2">Key plays</h2>
+        <ol class="plays__list" id="plays-list">
+          <li class="plays__empty">No plays yet.</li>
+        </ol>
+      </div>
+
+      <!-- Who you got -->
+      <div class="whoyougot reveal">
+        <h2 class="scores__h2">Who you got? <span class="whoyougot__hint">Pick your cat &amp; rep it.</span></h2>
+        <div class="whoyougot__grid">
+          <figure class="pick" data-side="home">
+            <img src="portugal-cat.webp" alt="Portugal catwifhat" width="1024" height="1536" loading="lazy" />
+            <figcaption>
+              <span class="pick__name">Portugal</span>
+              <a class="btn btn--ginger pick__dl" href="portugal-cat.PNG" download="portugal-catwifhat-pfp.png">Download PFP</a>
+            </figcaption>
+            <button class="pick__choose" type="button" data-side="home">I'm rolling with Portugal</button>
+          </figure>
+          <figure class="pick" data-side="away">
+            <img src="congo-dr-cat.webp" alt="Congo DR catwifhat" width="1024" height="1536" loading="lazy" />
+            <figcaption>
+              <span class="pick__name">Congo DR</span>
+              <a class="btn btn--ginger pick__dl" href="congo-dr-cat.PNG" download="congo-dr-catwifhat-pfp.png">Download PFP</a>
+            </figcaption>
+            <button class="pick__choose" type="button" data-side="away">I'm rolling with Congo DR</button>
+          </figure>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="section__wrap">
+      <div class="footer__socials">
+        <a href="https://x.com/catwifusdc" target="_blank" rel="noopener">
+          <svg class="ico" aria-hidden="true"><use href="#ico-x" /></svg> X
+        </a>
+        <a href="https://t.me/catwifhattheportal" target="_blank" rel="noopener">
+          <svg class="ico" aria-hidden="true"><use href="#ico-tg" /></svg> Telegram
+        </a>
+        <a href="index.html">Home</a>
+      </div>
+      <p class="footer__disclaimer">
+        Scores are sourced live from a public sports feed and provided for fun. catwifhat ($WIF)
+        is an independent meme project, not affiliated with FIFA, ESPN, dogwifhat, or any team.
+        Nothing here is financial advice.
+      </p>
+      <p class="footer__copy">© 2026 catwifhat. made by the litter. 🐱🧢</p>
+    </div>
+  </footer>
+
+  <!-- Toast -->
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script src="main.js?v=13"></script>
+  <script src="scores.js?v=1"></script>
+</body>
+</html>

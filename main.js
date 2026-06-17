@@ -42,6 +42,8 @@
       toast.classList.remove("show");
     }, 1800);
   }
+  // expose for other page scripts (e.g. scores.js)
+  window.__wifToast = showToast;
 
   /* ---------- Copy contract to clipboard ---------- */
   function copyContract() {
