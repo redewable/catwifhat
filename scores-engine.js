@@ -271,25 +271,71 @@
     const dl = $("pick-" + side + "-dl"), soon = $("pick-" + side + "-soon");
     if (im.isCat) { dl.hidden = false; soon.hidden = true; dl.href = im.base + ".png"; dl.setAttribute("download", im.base + "wifhat-pfp.png"); } else { dl.hidden = true; soon.hidden = false; }
   }
+  const POLL_API = "/api/poll";
+  let pickedSide = null, sideHome = null, sideAway = null;
+  function votedKey(id) { return "wif-voted-" + id; }
+  function hasVoted(id) { try { return !!localStorage.getItem(votedKey(id)); } catch (e) { return false; } }
+
   function renderPicks(ev, home, away) {
     fillPick("home", home); fillPick("away", away);
+    sideHome = home; sideAway = away;
     let saved = null; try { saved = localStorage.getItem("wif-pick-" + ev.id); } catch (e) {}
+    pickedSide = saved;
     document.querySelectorAll(".pick").forEach(function (f) { f.classList.toggle("is-picked", saved && f.dataset.side === saved); });
-    updateShare(saved, home, away); refreshPoll(ev.id);
+    updateShare(saved, home, away);
+    syncVoteUI(ev.id);
+  }
+  // Two-step: pick a cat → "Submit global vote" → results appear (and persist).
+  function syncVoteUI(id) {
+    const submit = $("poll-submit"), poll = $("poll");
+    if (hasVoted(id)) {
+      if (submit) submit.hidden = true;
+      refreshPoll(id);                        // show the global results
+    } else {
+      if (submit) { submit.hidden = !pickedSide; submit.disabled = !pickedSide; }
+      if (poll) poll.hidden = true;           // no results until they submit
+    }
   }
   function updateShare(saved, home, away) { const b = $("pick-share"); if (!b) return; if (!saved) { b.hidden = true; return; } const t = saved === "home" ? home : away; b.hidden = false; b.dataset.text = "I'm rolling with " + ((t.team || {}).displayName || "my team") + " 🐱 in the #catwifhat Scorebox\n$WIF, but on $USDC\ncatwifusdc.com"; }
+
   document.querySelectorAll(".pick__choose").forEach(function (btn) {
     btn.addEventListener("click", function () {
-      const side = btn.dataset.side;
+      if (hasVoted(EVENT_ID)) return; // already voted — locked in
+      const side = btn.dataset.side; pickedSide = side;
       document.querySelectorAll(".pick").forEach(function (f) { f.classList.toggle("is-picked", f.dataset.side === side); });
       try { localStorage.setItem("wif-pick-" + EVENT_ID, side); } catch (e) {}
-      votePoll(EVENT_ID, side);
-      if (window.__wifToast) window.__wifToast("You're rolling with " + $("pick-" + side + "-name").textContent + "! 🐱");
+      if (sideHome) updateShare(side, sideHome, sideAway);
+      syncVoteUI(EVENT_ID);
+      if (window.__wifToast) window.__wifToast("Picked " + $("pick-" + side + "-name").textContent + " — now submit your vote");
     });
   });
-  const POLL_API = "/api/poll";
+  (function () {
+    const submit = $("poll-submit"); if (!submit) return;
+    submit.addEventListener("click", function () {
+      if (!pickedSide || hasVoted(EVENT_ID)) return;
+      submit.disabled = true; submit.textContent = "Submitting…";
+      votePoll(EVENT_ID, pickedSide);
+    });
+  })();
+
   function refreshPoll(id) { fetch(POLL_API + "?event=" + encodeURIComponent(id), { cache: "no-store" }).then(function (r) { return r.ok ? r.json() : null; }).then(renderPoll).catch(function () { renderPoll(null); }); }
-  function votePoll(id, side) { fetch(POLL_API, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ event: id, side: side }) }).then(function (r) { return r.ok ? r.json() : null; }).then(renderPoll).catch(function () {}); }
+  function votePoll(id, side) {
+    fetch(POLL_API, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ event: id, side: side }) })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (d) {
+        const submit = $("poll-submit");
+        if (!d || d.configured === false || (d.home == null && d.away == null)) {
+          if (submit) { submit.disabled = false; submit.textContent = "Submit global vote"; }
+          if (window.__wifToast) window.__wifToast("Global voting isn't live yet — try again soon");
+          return;
+        }
+        try { localStorage.setItem(votedKey(id), side); } catch (e) {}
+        if (submit) submit.hidden = true;
+        renderPoll(d);
+        if (window.__wifToast) window.__wifToast("Vote counted! 🐱");
+      })
+      .catch(function () { const submit = $("poll-submit"); if (submit) { submit.disabled = false; submit.textContent = "Submit global vote"; } if (window.__wifToast) window.__wifToast("Couldn't reach the poll — try again"); });
+  }
   function renderPoll(d) { const w = $("poll"); if (!w) return; if (!d || (d.home == null && d.away == null)) { w.hidden = true; return; } const h = +d.home || 0, a = +d.away || 0, tot = h + a, hp = tot ? Math.round(h / tot * 100) : 50; $("poll-home-fill").style.width = hp + "%"; $("poll-away-fill").style.width = (100 - hp) + "%"; $("poll-home-pct").textContent = hp + "%"; $("poll-away-pct").textContent = (100 - hp) + "%"; $("poll-total").textContent = tot.toLocaleString() + (tot === 1 ? " vote" : " votes"); w.hidden = false; }
 
   /* share card */

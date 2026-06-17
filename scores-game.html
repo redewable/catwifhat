@@ -15,7 +15,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@600;700;800;900&family=Hanken+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css?v=21" />
+  <link rel="stylesheet" href="styles.css?v=22" />
 </head>
 <body>
 
@@ -86,11 +86,13 @@
             <button class="pick__choose" type="button" data-side="away">I'm rolling with this cat</button>
           </figure>
         </div>
+        <button class="btn btn--blue poll__submit" id="poll-submit" type="button" hidden>Submit global vote</button>
         <div class="poll" id="poll" hidden>
+          <div class="poll__head">Poll results</div>
           <div class="poll__bar"><span class="poll__fill poll__fill--home" id="poll-home-fill"></span><span class="poll__fill poll__fill--away" id="poll-away-fill"></span></div>
           <div class="poll__labels"><span id="poll-home-pct">—</span><span class="poll__total" id="poll-total"></span><span id="poll-away-pct">—</span></div>
         </div>
-        <button class="btn btn--blue pick__share" id="pick-share" type="button" hidden>Share your pick on X <svg class="ico" aria-hidden="true"><use href="#ico-x" /></svg></button>
+        <button class="btn btn--ghost pick__share" id="pick-share" type="button" hidden>Share your pick on X <svg class="ico" aria-hidden="true"><use href="#ico-x" /></svg></button>
       </div>
 
       <div class="lineups reveal in" id="lineups" hidden>
@@ -123,6 +125,6 @@
     };
   </script>
   <script src="main.js?v=17"></script>
-  <script src="scores-engine.js?v=12"></script>
+  <script src="scores-engine.js?v=13"></script>
 </body>
 </html>

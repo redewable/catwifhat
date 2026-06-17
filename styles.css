@@ -1570,3 +1570,7 @@ a.sportcard:hover { transform: translateY(-4px); border-color: var(--ginger); bo
 /* yarn soccer-ball icon (replaces the line-art ball) */
 .ic-ball { height: 1.3em; width: auto; vertical-align: -0.28em; }
 .play__icon .ic-ball { height: 1.55em; vertical-align: -0.42em; }
+
+/* Two-step global vote */
+.poll__submit { display: block; width: 100%; margin-top: 1rem; }
+.poll__head { font-family: var(--font-display); font-weight: 800; font-size: 0.95rem; margin-bottom: 0.6rem; }
