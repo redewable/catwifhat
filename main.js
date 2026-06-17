@@ -122,6 +122,35 @@
     setInterval(refreshStats, 30000);
   }
 
+  /* ---------- Homepage live sports bar ---------- */
+  const livebar = document.getElementById("livebar");
+  if (livebar) {
+    const txt = document.getElementById("livebar-txt");
+    function refreshLive() {
+      fetch("https://site.api.espn.com/apis/site/v2/sports/soccer/fifa.world/scoreboard", { cache: "no-store" })
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+          const live = (data.events || []).filter(function (e) {
+            return ((((e.competitions || [])[0] || {}).status || {}).type || {}).state === "in";
+          });
+          if (!live.length) { livebar.hidden = true; return; }
+          const e = live[0];
+          const cs = (e.competitions[0].competitors) || [];
+          const h = cs.filter(function (c) { return c.homeAway === "home"; })[0] || cs[0] || {};
+          const a = cs.filter(function (c) { return c.homeAway === "away"; })[0] || cs[1] || {};
+          const clock = (e.competitions[0].status || {}).displayClock || "";
+          const ab = function (c) { return (c.team || {}).abbreviation || ""; };
+          txt.innerHTML = ab(h) + " <b>" + (h.score || 0) + "–" + (a.score || 0) + "</b> " + ab(a) +
+            (live.length > 1 ? " <span style='opacity:.6'>+" + (live.length - 1) + " more</span>" : "") +
+            " · " + clock;
+          livebar.hidden = false;
+        })
+        .catch(function () { /* keep hidden / last state */ });
+    }
+    refreshLive();
+    setInterval(function () { if (!document.hidden) refreshLive(); }, 60000);
+  }
+
   /* ---------- Scroll reveal (IntersectionObserver) ---------- */
   const revealEls = document.querySelectorAll(".reveal");
   if ("IntersectionObserver" in window) {

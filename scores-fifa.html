@@ -20,7 +20,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@600;700;800;900&family=Hanken+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css?v=13" />
+  <link rel="stylesheet" href="styles.css?v=14" />
 </head>
 <body>
 
@@ -87,6 +87,7 @@
         <!-- Live match stats (replaces the old key-play runner) -->
         <div class="matchstats" id="matchstats"><div class="matchstats__pending">Loading…</div></div>
         <p class="scoreboard__updated" id="updated"></p>
+        <button class="sb__share" id="sb-share" type="button">📸 Share this match card</button>
       </div>
 
       <!-- Key plays, split by team -->
@@ -127,9 +128,54 @@
             <button class="pick__choose" type="button" data-side="away">I'm rolling with this cat</button>
           </figure>
         </div>
+        <!-- Global vote bar (only shows once the poll backend reports counts) -->
+        <div class="poll" id="poll" hidden>
+          <div class="poll__bar">
+            <span class="poll__fill poll__fill--home" id="poll-home-fill"></span>
+            <span class="poll__fill poll__fill--away" id="poll-away-fill"></span>
+          </div>
+          <div class="poll__labels">
+            <span id="poll-home-pct">—</span>
+            <span class="poll__total" id="poll-total"></span>
+            <span id="poll-away-pct">—</span>
+          </div>
+        </div>
         <button class="btn btn--blue pick__share" id="pick-share" type="button" hidden>
           Share your pick on X <svg class="ico" aria-hidden="true"><use href="#ico-x" /></svg>
         </button>
+      </div>
+
+      <!-- Lineups -->
+      <div class="lineups reveal" id="lineups" hidden>
+        <h2 class="scores__h2">Starting XI <span class="whoyougot__hint" id="lineups-sub"></span></h2>
+        <div class="lineups__cols">
+          <div class="lineups__col"><div class="lineups__head" id="lineup-home-head"></div><ul class="lineups__list" id="lineup-home"></ul></div>
+          <div class="lineups__col"><div class="lineups__head" id="lineup-away-head"></div><ul class="lineups__list" id="lineup-away"></ul></div>
+        </div>
+      </div>
+
+      <!-- Group standings -->
+      <div class="standings reveal" id="standings" hidden>
+        <h2 class="scores__h2">Group standings</h2>
+        <div class="standings__wrap">
+          <table class="standings__tbl">
+            <thead><tr><th class="standings__teamh">Team</th><th>P</th><th>W</th><th>D</th><th>L</th><th>GD</th><th>Pts</th></tr></thead>
+            <tbody id="standings-body"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Predict the champion -->
+      <div class="champ reveal">
+        <h2 class="scores__h2">Call it now 🏆</h2>
+        <p class="champ__sub">Who lifts the cup? Lock your pick and rep it.</p>
+        <div class="champ__row">
+          <select id="champ-select" class="champ__select" aria-label="Pick the World Cup champion">
+            <option value="">Pick a team…</option>
+          </select>
+          <button class="btn btn--blue champ__share" id="champ-share" type="button" hidden>Share 🏆</button>
+        </div>
+        <p class="champ__saved" id="champ-saved" hidden></p>
       </div>
 
       <!-- All matches -->
@@ -165,7 +211,7 @@
       teamCats: { POR: "portugal-cat", COD: "congo-dr-cat" }
     };
   </script>
-  <script src="main.js?v=13"></script>
-  <script src="scores-engine.js?v=1"></script>
+  <script src="main.js?v=14"></script>
+  <script src="scores-engine.js?v=3"></script>
 </body>
 </html>

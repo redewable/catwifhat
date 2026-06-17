@@ -1433,3 +1433,64 @@ a.sportcard:hover { transform: translateY(-4px); border-color: var(--ginger); bo
   .plays__team { font-size: 0.82rem; }
   .play__min { min-width: 2.2rem; }
 }
+
+/* ---- Scores: share card btn, poll, lineups, standings, champion ---- */
+.sb__share {
+  display: block; margin: 0.8rem auto 0; border: 2px solid var(--cream-d); background: var(--white);
+  color: var(--ink); font-family: var(--font-body); font-weight: 700; font-size: 0.85rem;
+  padding: 0.5rem 1rem; border-radius: 999px; cursor: pointer; transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+.sb__share:hover { background: var(--blue); border-color: var(--blue); color: var(--white); }
+
+/* global poll */
+.poll { margin-top: 1.2rem; }
+.poll__bar { display: flex; height: 16px; border-radius: 999px; overflow: hidden; background: var(--cream-d); }
+.poll__fill { display: block; height: 100%; transition: width 0.5s ease; }
+.poll__fill--home { background: #da291c; }
+.poll__fill--away { background: var(--blue); }
+.poll__labels { display: flex; justify-content: space-between; align-items: center; margin-top: 0.4rem; font-weight: 800; font-size: 0.9rem; }
+.poll__total { font-weight: 700; opacity: 0.55; font-size: 0.8rem; }
+
+/* lineups */
+.lineups__cols { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(0.6rem, 2.5vw, 1.2rem); }
+.lineups__head { font-family: var(--font-display); font-weight: 800; margin-bottom: 0.6rem; display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap; }
+.lineups__list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.3rem; }
+.lineups__list li { display: flex; align-items: center; gap: 0.55rem; background: var(--white); border-radius: 9px; padding: 0.45rem 0.7rem; box-shadow: var(--shadow); font-size: 0.92rem; }
+.lineups__pos { font-size: 0.66rem; font-weight: 800; min-width: 2.2rem; opacity: 0.55; text-transform: uppercase; }
+.lineups__num { font-family: var(--font-display); font-weight: 800; min-width: 1.5rem; }
+
+/* standings */
+.standings__wrap { overflow-x: auto; }
+.standings__tbl { width: 100%; border-collapse: collapse; background: var(--white); border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow); }
+.standings__tbl th, .standings__tbl td { padding: 0.6rem 0.5rem; text-align: center; font-size: 0.92rem; }
+.standings__tbl thead th { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.04em; opacity: 0.55; background: var(--cream); }
+.standings__teamh, .standings__team { text-align: left !important; }
+.standings__team { display: flex; align-items: center; gap: 0.5rem; font-weight: 700; }
+.standings__flag { width: 22px; height: 22px; border-radius: 50%; object-fit: cover; background: var(--cream); flex: none; }
+.standings__tbl tbody tr + tr { border-top: 1px solid var(--cream-d); }
+.standings__pts { font-family: var(--font-display); font-weight: 800; }
+
+/* champion predictor */
+.champ__sub { opacity: 0.7; margin: -0.4rem 0 0.8rem; }
+.champ__row { display: flex; gap: 0.6rem; flex-wrap: wrap; align-items: center; }
+.champ__select {
+  font-family: var(--font-body); font-weight: 700; font-size: 0.95rem; color: var(--ink);
+  padding: 0.7rem 1rem; border-radius: 12px; border: 2px solid var(--cream-d); background: var(--white);
+  min-width: 220px; cursor: pointer;
+}
+.champ__saved { margin-top: 0.7rem; font-family: var(--font-display); font-weight: 800; }
+
+/* Homepage live-score bar */
+.livebar {
+  display: flex; align-items: center; gap: 0.7rem; width: min(1080px, 92%);
+  margin: 0 auto clamp(1.5rem, 4vw, 2.6rem); padding: 0.7rem 1rem;
+  background: var(--ink); color: #fff; border-radius: 14px; text-decoration: none;
+  box-shadow: var(--shadow); transition: transform 0.15s ease;
+}
+.livebar:hover { transform: translateY(-2px); }
+.livebar__tag { display: inline-flex; align-items: center; gap: 0.35rem; font-size: 0.7rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: #ff7a6e; flex: none; }
+.livebar__tag .ticker__dot { background: #d8483c; }
+.livebar__txt { font-weight: 700; font-size: 0.95rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.livebar__txt b { color: var(--ginger); }
+.livebar__go { margin-left: auto; font-weight: 800; font-size: 0.85rem; opacity: 0.85; flex: none; }
+@media (max-width: 560px) { .livebar__go { display: none; } }
