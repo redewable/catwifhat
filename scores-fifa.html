@@ -20,14 +20,14 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@600;700;800;900&family=Hanken+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css?v=17" />
+  <link rel="stylesheet" href="styles.css?v=18" />
 </head>
 <body>
 
   <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
     <symbol id="ico-x" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" /></symbol>
     <symbol id="ico-tg" viewBox="0 0 24 24"><path d="M21.94 4.78c.28-1.12-.42-1.63-1.15-1.3L4.82 9.64c-1.09.44-1.08 1.05-.2 1.3l4.1 1.28 1.6 5.13c.2.55.36.76.75.76.38 0 .55-.18.76-.4l1.92-1.86 3.98 2.94c.73.4 1.26.2 1.45-.68l2.62-12.34zm-5.1 3.07L9.4 12.5c-.37.23-.7.36-.83.78l-.28 4.23c-.04.4-.2.42-.4.42l.28-4.23 7.68-6.92c.34-.31-.07-.46-.52-.19z" /></symbol>
-    <symbol id="ic-goal" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9.3"/><polygon points="12,7 15.6,9.6 14.2,13.9 9.8,13.9 8.4,9.6" fill="currentColor" stroke="none"/></g></symbol>
+    <symbol id="ic-goal" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"><circle cx="12" cy="12" r="9.3"/><path d="M12 6.2l3.7 2.7-1.4 4.4H9.7L8.3 8.9z" fill="currentColor" stroke="none"/><path d="M12 6.2V3.2M15.7 8.9l2.7-1.2M14.3 13.3l2.1 2.6M9.7 13.3l-2.1 2.6M8.3 8.9 5.6 7.7"/></g></symbol>
     <symbol id="ic-card" viewBox="0 0 24 24"><rect x="6.5" y="3" width="11" height="18" rx="2.2" fill="currentColor"/></symbol>
     <symbol id="ic-var" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="12" rx="2"/><path d="M8 21h8"/></g></symbol>
     <symbol id="ic-trophy" viewBox="0 0 24 24"><path fill="currentColor" d="M18 2H6v2H2v4a4 4 0 0 0 4 4 6 6 0 0 0 5 4.9V21H8v2h8v-2h-3v-4.1A6 6 0 0 0 18 12a4 4 0 0 0 4-4V4h-4V2zM6 10a2 2 0 0 1-2-2V6h2v4zm14-2a2 2 0 0 1-2 2V6h2v2z"/></symbol>
@@ -56,7 +56,7 @@
     <div class="section__wrap">
       <a class="scores__back" href="scores.html">‹ All sports</a>
       <h1 class="scores__title reveal">World Cup Scorebox</h1>
-      <p class="scores__sub reveal">Sports are better with cats. 🐱⚽ Every match, live and auto-updating — score, match clock, team-by-team key plays and live stats.</p>
+      <p class="scores__sub reveal">Sports are better with cats. <img class="emo" src="icon-cat.webp" alt="cat" /> Every match, live and auto-updating — score, match clock, team-by-team key plays and live stats.</p>
 
       <div class="datenav reveal">
         <button class="datenav__btn" id="date-prev" type="button" aria-label="Previous day">‹</button>
@@ -167,13 +167,13 @@
 
       <!-- Predict the champion -->
       <div class="champ reveal">
-        <h2 class="scores__h2">Call it now <svg class="ic" aria-hidden="true"><use href="#ic-trophy" /></svg></h2>
+        <h2 class="scores__h2">Call it now <img class="emo" src="acc-trophy.webp" alt="trophy" /></h2>
         <p class="champ__sub">Who lifts the cup? Lock your pick and rep it.</p>
         <div class="champ__row">
           <select id="champ-select" class="champ__select" aria-label="Pick the World Cup champion">
             <option value="">Pick a team…</option>
           </select>
-          <button class="btn btn--blue champ__share" id="champ-share" type="button" hidden>Share <svg class="ic" aria-hidden="true"><use href="#ic-trophy" /></svg></button>
+          <button class="btn btn--blue champ__share" id="champ-share" type="button" hidden>Share <img class="emo" src="acc-trophy.webp" alt="trophy" /></button>
         </div>
         <p class="champ__saved" id="champ-saved" hidden></p>
       </div>
@@ -197,7 +197,7 @@
         Scores are sourced live from a public sports feed and provided for fun. catwifhat ($WIF)
         is an independent meme project, not affiliated with FIFA, ESPN, dogwifhat, or any team. Nothing here is financial advice.
       </p>
-      <p class="footer__copy">© 2026 catwifhat. made by the litter. 🐱🧢</p>
+      <p class="footer__copy">© 2026 catwifhat. made by the litter. <img class="emo" src="icon-cat.webp" alt="cat" /><img class="emo" src="acc-beanie.webp" alt="hat" /></p>
     </div>
   </footer>
 
@@ -217,7 +217,7 @@
       }
     };
   </script>
-  <script src="main.js?v=15"></script>
+  <script src="main.js?v=17"></script>
   <script src="scores-engine.js?v=7"></script>
 </body>
 </html>

@@ -1527,3 +1527,10 @@ a.sportcard:hover { transform: translateY(-4px); border-color: var(--ginger); bo
 .play__icon .ic, .runner__icon .ic { width: 1.15em; height: 1.15em; vertical-align: -0.18em; }
 .sb__share .ic, .champ__share .ic, .scores__h2 .ic { vertical-align: -0.14em; }
 .sportcard__title .ic { width: 1.1em; height: 1.1em; vertical-align: -0.12em; margin-right: 0.15em; }
+
+/* Emoji replaced by asset images */
+.emo { height: 1em; width: auto; vertical-align: -0.16em; display: inline-block; }
+.emo--lg { height: 1.25em; vertical-align: -0.28em; }
+.emo--xl { height: 3.2em; }
+.card__icon .emo { height: 1em; }
+.champs__badge .emo--lg { height: 1.4em; }
