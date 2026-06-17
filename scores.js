@@ -1,9 +1,9 @@
 /* ============================================================
-   catwifhat — scores.js
-   Live, auto-updating scoreboard + key-play runner.
+   catwifhat — scores.js  ("The Scorebox")
+   The whole World Cup, live & auto-updating, 100% client-side.
    Data: ESPN's public sports API (no key, CORS-enabled).
-   Single poll of the match "summary" endpoint drives the whole page:
-   score, live match clock, status, and key events.
+     - scoreboard?dates=YYYYMMDD  → every match that day (score, clock, status)
+     - summary?event=ID           → key plays for the featured match
    ============================================================ */
 (function () {
   "use strict";
@@ -11,158 +11,145 @@
   const sb = document.getElementById("sb");
   if (!sb) return; // not the scores page
 
-  /* ---- Featured match config ----
-     Swap EVENT_ID (and the team meta) to feature a different game.
-     Find an event id at:
-     site.api.espn.com/apis/site/v2/sports/soccer/<league>/scoreboard  */
   const LEAGUE = "fifa.world";
-  const EVENT_ID = "760435"; // Portugal vs Congo DR — 2026 WC group stage
-  const SUMMARY = "https://site.api.espn.com/apis/site/v2/sports/soccer/" + LEAGUE + "/summary?event=" + EVENT_ID;
+  const BASE = "https://site.api.espn.com/apis/site/v2/sports/soccer/" + LEAGUE;
 
-  // Team metadata keyed by ESPN abbreviation → our cat PFPs.
-  const TEAMS = {
-    POR: { name: "Portugal", cat: "portugal-cat.webp" },
-    COD: { name: "Congo DR", cat: "congo-dr-cat.webp" },
+  /* ---- Team cat memes ----
+     Map an ESPN team abbreviation → the base filename of its cat PFP.
+     Create <base>.webp (display) and <base>.PNG (download) and add a line here.
+     Teams without a cat fall back to their country flag automatically. */
+  const TEAM_CATS = {
+    POR: "portugal-cat",
+    COD: "congo-dr-cat",
+    // ENG: "england-cat", BRA: "brazil-cat", FRA: "france-cat", ARG: "argentina-cat", ...
   };
 
-  // Which key events make the runner / timeline, with an emoji.
-  function iconFor(typeText) {
-    const t = (typeText || "").toLowerCase();
-    if (t.indexOf("penalty") > -1 && t.indexOf("miss") > -1) return "❌";
-    if (t.indexOf("own goal") > -1) return "⚽️";
-    if (t.indexOf("goal") > -1) return "⚽️";
-    if (t.indexOf("yellow") > -1) return "🟨";
-    if (t.indexOf("red") > -1) return "🟥";
-    if (t.indexOf("substitution") > -1) return "🔁";
-    if (t.indexOf("kickoff") > -1 || t.indexOf("start") > -1) return "🟢";
-    if (t.indexOf("end") > -1 || t.indexOf("full") > -1) return "🏁";
-    if (t.indexOf("var") > -1) return "📺";
-    return "•";
-  }
-  function isKey(typeText) {
-    const t = (typeText || "").toLowerCase();
-    return /goal|yellow|red|penalt|var/.test(t); // skip drinks-break / generic delays
-  }
+  /* ---------- state ---------- */
+  let currentDate = new Date();
+  let featuredId = null;
+  const eventsById = {};
+  let sbTimer = null, ftTimer = null;
+  let prevGoals = {}; // per-event goal count, for the flash
 
+  /* ---------- helpers ---------- */
   const $ = function (id) { return document.getElementById(id); };
-  const els = {
-    homeCat: $("home-cat"), awayCat: $("away-cat"),
-    homeName: $("home-name"), awayName: $("away-name"),
-    homeScore: $("home-score"), awayScore: $("away-score"),
-    statusText: $("status-text"), livedot: $("livedot"),
-    runnerTrack: $("runner-track"), playsList: $("plays-list"),
-    updated: $("updated"),
-  };
-
-  let prevGoals = null; // detect new goals for the flash
-  let timer = null;
-  let stopped = false;
-
-  function teamMeta(competitor) {
-    const ab = (competitor.team && competitor.team.abbreviation) || "";
-    if (TEAMS[ab]) return TEAMS[ab];
-    // fallback: match by display name
-    const dn = (competitor.team && competitor.team.displayName) || "";
-    for (const k in TEAMS) if (TEAMS[k].name === dn) return TEAMS[k];
-    return { name: dn || ab, cat: null };
+  function pad(n) { return String(n).padStart(2, "0"); }
+  function ymd(d) { return "" + d.getFullYear() + pad(d.getMonth() + 1) + pad(d.getDate()); }
+  function isToday(d) { return d.toDateString() === new Date().toDateString(); }
+  function dayLabel(d) {
+    try { return d.toLocaleDateString([], { weekday: "short", month: "short", day: "numeric" }); }
+    catch (e) { return d.toDateString(); }
   }
-
-  function setTeam(slot, competitor) {
-    const meta = teamMeta(competitor);
-    els[slot + "Name"].textContent = meta.name;
-    if (meta.cat && !els[slot + "Cat"].src.endsWith(meta.cat)) els[slot + "Cat"].src = meta.cat;
-    els[slot + "Cat"].alt = meta.name + " cat";
-    els[slot + "Score"].textContent = (competitor.score != null ? competitor.score : "–");
-  }
-
   function fmtTime(d) {
     try { return d.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }); }
     catch (e) { return ""; }
   }
+  function escapeHtml(s) {
+    return String(s == null ? "" : s).replace(/[&<>"]/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c];
+    });
+  }
+  function iconFor(typeText) {
+    const t = (typeText || "").toLowerCase();
+    if (t.indexOf("own goal") > -1) return "⚽️";
+    if (t.indexOf("goal") > -1) return "⚽️";
+    if (t.indexOf("yellow") > -1) return "🟨";
+    if (t.indexOf("red") > -1) return "🟥";
+    if (t.indexOf("var") > -1) return "📺";
+    return "•";
+  }
+  function isKey(typeText) { return /goal|yellow|red|penalt|var/i.test(typeText || ""); }
 
-  function render(data) {
-    const header = data && data.header;
-    const comp = header && header.competitions && header.competitions[0];
-    if (!comp) throw new Error("no competition in summary");
+  function teamImg(competitor) {
+    const team = competitor.team || {};
+    const ab = team.abbreviation || "";
+    if (TEAM_CATS[ab]) return { src: TEAM_CATS[ab] + ".webp", isCat: true, base: TEAM_CATS[ab] };
+    const logo = team.logo || ((team.logos || [])[0] || {}).href || "";
+    return { src: logo, isCat: false, base: null };
+  }
+  function competitors(ev) {
+    const c = (ev.competitions || [])[0] || {};
+    const list = c.competitors || [];
+    const home = list.filter(function (x) { return x.homeAway === "home"; })[0] || list[0] || {};
+    const away = list.filter(function (x) { return x.homeAway === "away"; })[0] || list[1] || {};
+    return { comp: c, home: home, away: away, status: (c.status || {}) };
+  }
 
-    const status = comp.status || {};
+  /* ---------- featured scoreboard ---------- */
+  function setBadge(imgEl, competitor) {
+    const im = teamImg(competitor);
+    if (im.src && !imgEl.src.endsWith(im.src)) imgEl.src = im.src;
+    imgEl.classList.toggle("team__cat--flag", !im.isCat);
+    imgEl.alt = ((competitor.team || {}).displayName || "") + (im.isCat ? " cat" : " flag");
+    return im;
+  }
+  function renderFeatured(ev) {
+    const { home, away, status } = competitors(ev);
     const stype = status.type || {};
-    const state = stype.state; // pre | in | post
-    const competitors = comp.competitors || [];
-    const home = competitors.filter(function (c) { return c.homeAway === "home"; })[0] || competitors[0];
-    const away = competitors.filter(function (c) { return c.homeAway === "away"; })[0] || competitors[1];
+    const state = stype.state;
 
-    if (home) setTeam("home", home);
-    if (away) setTeam("away", away);
+    setBadge($("home-cat"), home);
+    setBadge($("away-cat"), away);
+    $("home-name").textContent = (home.team || {}).displayName || "";
+    $("away-name").textContent = (away.team || {}).displayName || "";
+    $("home-score").textContent = home.score != null && state !== "pre" ? home.score : "–";
+    $("away-score").textContent = away.score != null && state !== "pre" ? away.score : "–";
 
-    // ---- status / clock ----
     sb.dataset.state = state || "";
     const live = state === "in";
-    els.livedot.hidden = !live;
-    let txt;
+    $("livedot").hidden = !live;
     const detail = (stype.shortDetail || stype.detail || "").trim();
-    if (live) {
-      txt = /ht|half/i.test(detail) ? "HALFTIME" : (status.displayClock || detail || "LIVE");
-    } else if (state === "post") {
-      txt = "FULL TIME";
-    } else {
-      // pre-match: show local kickoff time if available
-      const dt = header.competitions[0].date || (data.gameInfo && data.gameInfo.date);
-      const when = dt ? new Date(dt) : null;
-      txt = when && !isNaN(when) ? "Kickoff " + fmtTime(when) : (detail || "Scheduled");
-    }
-    els.statusText.textContent = txt;
+    let txt;
+    if (live) txt = /ht|half/i.test(detail) ? "HALFTIME" : (status.displayClock || detail || "LIVE");
+    else if (state === "post") txt = "FULL TIME";
+    else { const dt = new Date(ev.date); txt = !isNaN(dt) ? "Kickoff " + fmtTime(dt) : (detail || "Scheduled"); }
+    $("status-text").textContent = txt;
 
-    // ---- key events ----
-    const events = (data.keyEvents || []).map(function (ev) {
+    $("sb-comp").textContent = "FIFA World Cup 2026 · " + ((ev.shortName || "").replace("@", "v"));
+    renderPicks(ev, home, away);
+  }
+
+  /* ---------- featured key plays (from summary) ---------- */
+  function renderDetail(summary) {
+    const events = (summary.keyEvents || []).map(function (ev) {
       const typeText = (ev.type && ev.type.text) || "";
       const minute = (ev.clock && ev.clock.displayValue) || "";
-      const who = (ev.participants || [])
-        .map(function (p) { return p.athlete && p.athlete.displayName; })
-        .filter(Boolean);
-      const name = who[0] || (ev.team && ev.team.displayName) || "";
-      return { typeText: typeText, minute: minute, name: name, key: isKey(typeText), icon: iconFor(typeText) };
-    });
-    const keyEvents = events.filter(function (e) { return e.key && e.minute; });
+      const who = (ev.participants || []).map(function (p) { return p.athlete && p.athlete.displayName; }).filter(Boolean);
+      return { typeText: typeText, minute: minute, name: who[0] || (ev.team && ev.team.displayName) || "", icon: iconFor(typeText) };
+    }).filter(function (e) { return isKey(e.typeText) && e.minute; });
 
-    renderRunner(keyEvents);
-    renderPlays(keyEvents);
+    renderRunner(events);
+    renderPlays(events);
 
-    // ---- new-goal flash ----
-    const goals = keyEvents.filter(function (e) { return /goal/i.test(e.typeText); }).length;
-    if (prevGoals != null && goals > prevGoals) {
+    const goals = events.filter(function (e) { return /goal/i.test(e.typeText); }).length;
+    if (prevGoals[featuredId] != null && goals > prevGoals[featuredId]) {
       sb.classList.remove("goal-flash"); void sb.offsetWidth; sb.classList.add("goal-flash");
       if (window.__wifToast) window.__wifToast("GOAL! ⚽️");
     }
-    prevGoals = goals;
-
-    els.updated.textContent = "Updated " + fmtTime(new Date()) + " · auto-refreshing";
-    return state;
+    prevGoals[featuredId] = goals;
+    $("updated").textContent = "Updated " + fmtTime(new Date()) + " · auto-refreshing";
   }
-
-  function renderRunner(keyEvents) {
-    const track = els.runnerTrack;
-    if (!keyEvents.length) {
+  function renderRunner(events) {
+    const track = $("runner-track");
+    if (!events.length) {
       track.style.animation = "none";
       track.innerHTML = '<span class="runner__item runner__item--empty">No key plays yet — hang tight.</span>';
       return;
     }
-    const items = keyEvents.map(function (e) {
-      return '<span class="runner__item"><span class="runner__icon">' + e.icon + '</span>' +
-        escapeHtml(e.name) + ' <b>' + escapeHtml(e.minute) + "</b></span>";
+    const items = events.map(function (e) {
+      return '<span class="runner__item"><span class="runner__icon">' + e.icon + "</span>" +
+        escapeHtml(e.name) + " <b>" + escapeHtml(e.minute) + "</b></span>";
     }).join('<span class="runner__sep">•</span>');
-    // Each half ends with a wide spacer so there's clear separation at the loop seam.
     const half = items + '<span class="runner__gap" aria-hidden="true"></span>';
-    track.innerHTML = half + half; // duplicate for a seamless -50% loop
+    track.innerHTML = half + half;
     track.style.animation = "none"; void track.offsetWidth;
-    track.style.animationDuration = Math.max(14, keyEvents.length * 5) + "s";
+    track.style.animationDuration = Math.max(14, events.length * 5) + "s";
     track.style.animationName = "runner-scroll";
   }
-
-  function renderPlays(keyEvents) {
-    const list = els.playsList;
-    if (!keyEvents.length) { list.innerHTML = '<li class="plays__empty">No plays yet.</li>'; return; }
-    list.innerHTML = keyEvents.map(function (e) {
+  function renderPlays(events) {
+    const list = $("plays-list");
+    if (!events.length) { list.innerHTML = '<li class="plays__empty">No plays yet.</li>'; return; }
+    list.innerHTML = events.map(function (e) {
       const goal = /goal/i.test(e.typeText);
       return '<li class="play' + (goal ? " play--goal" : "") + '">' +
         '<span class="play__min">' + escapeHtml(e.minute) + "</span>" +
@@ -172,63 +159,183 @@
     }).join("");
   }
 
-  function escapeHtml(s) {
-    return String(s == null ? "" : s).replace(/[&<>"]/g, function (c) {
-      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c];
+  /* ---------- who you got (featured teams) ---------- */
+  function fillPick(side, competitor) {
+    const im = teamImg(competitor);
+    const name = (competitor.team || {}).displayName || "";
+    const imgEl = $("pick-" + side + "-img");
+    if (im.src) imgEl.src = im.src;
+    imgEl.alt = name + (im.isCat ? " catwifhat" : "");
+    imgEl.classList.toggle("is-flag", !im.isCat);
+    $("pick-" + side + "-name").textContent = name;
+    const dl = $("pick-" + side + "-dl");
+    const soon = $("pick-" + side + "-soon");
+    if (im.isCat) {
+      dl.hidden = false; soon.hidden = true;
+      dl.href = im.base + ".PNG";
+      dl.setAttribute("download", im.base + "wifhat-pfp.png");
+    } else {
+      dl.hidden = true; soon.hidden = false;
+    }
+  }
+  function renderPicks(ev, home, away) {
+    fillPick("home", home);
+    fillPick("away", away);
+    // restore this match's saved pick
+    let saved = null;
+    try { saved = localStorage.getItem("wif-pick-" + ev.id); } catch (e) {}
+    document.querySelectorAll(".pick").forEach(function (f) {
+      f.classList.toggle("is-picked", saved && f.dataset.side === saved);
     });
   }
-
-  // ---- polling loop with state-aware cadence ----
-  function intervalFor(state) {
-    if (state === "in") return 15000;   // live: tight
-    if (state === "post") return null;   // final: stop
-    return 60000;                        // pre: relaxed
-  }
-  function schedule(state) {
-    if (stopped) return;
-    const ms = intervalFor(state);
-    clearTimeout(timer);
-    if (ms != null) timer = setTimeout(poll, ms);
-  }
-  function poll() {
-    fetch(SUMMARY, { cache: "no-store" })
-      .then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
-      .then(function (data) {
-        let state;
-        try { state = render(data); }
-        catch (e) { state = "pre"; }
-        schedule(state);
-      })
-      .catch(function () {
-        els.updated.textContent = "Reconnecting…";
-        schedule("in"); // retry soon
-      });
-  }
-
-  // Pause polling while the tab is hidden; refresh immediately on return.
-  document.addEventListener("visibilitychange", function () {
-    if (document.hidden) { clearTimeout(timer); }
-    else { poll(); }
+  document.querySelectorAll(".pick__choose").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      const side = btn.dataset.side;
+      document.querySelectorAll(".pick").forEach(function (f) { f.classList.toggle("is-picked", f.dataset.side === side); });
+      try { if (featuredId) localStorage.setItem("wif-pick-" + featuredId, side); } catch (e) {}
+      const name = $("pick-" + side + "-name").textContent;
+      if (window.__wifToast) window.__wifToast("You're rolling with " + name + "! 🐱");
+    });
   });
 
-  /* ---- "Who you got?" local pick ---- */
-  (function picks() {
-    const KEY = "wif-pick";
-    const figs = document.querySelectorAll(".pick");
-    function apply(side) {
-      figs.forEach(function (f) { f.classList.toggle("is-picked", f.dataset.side === side); });
-    }
-    try { const saved = localStorage.getItem(KEY); if (saved) apply(saved); } catch (e) {}
-    document.querySelectorAll(".pick__choose").forEach(function (btn) {
-      btn.addEventListener("click", function () {
-        const side = btn.dataset.side;
-        apply(side);
-        try { localStorage.setItem(KEY, side); } catch (e) {}
-        const name = btn.closest(".pick").querySelector(".pick__name").textContent;
-        if (window.__wifToast) window.__wifToast("You're rolling with " + name + "! 🐱");
+  /* ---------- all-matches grid ---------- */
+  function renderGrid(events) {
+    const wrap = $("matches");
+    if (!events.length) { wrap.innerHTML = '<p class="matches__empty">No matches on this date.</p>'; return; }
+    // order: live first, then upcoming, then finished
+    const rank = { in: 0, pre: 1, post: 2 };
+    const sorted = events.slice().sort(function (a, b) {
+      const ra = rank[stateOf(a)] != null ? rank[stateOf(a)] : 3;
+      const rb = rank[stateOf(b)] != null ? rank[stateOf(b)] : 3;
+      if (ra !== rb) return ra - rb;
+      return new Date(a.date) - new Date(b.date);
+    });
+    wrap.innerHTML = sorted.map(matchCard).join("");
+    wrap.querySelectorAll(".match").forEach(function (card) {
+      card.addEventListener("click", function () {
+        const ev = eventsById[card.dataset.id];
+        if (ev) selectFeatured(ev.id);
       });
     });
-  })();
+  }
+  function stateOf(ev) { return ((((ev.competitions || [])[0] || {}).status || {}).type || {}).state; }
+  function badgeHtml(competitor) {
+    const im = teamImg(competitor);
+    const cls = "match__badge" + (im.isCat ? "" : " match__badge--flag");
+    return '<img class="' + cls + '" src="' + escapeHtml(im.src) + '" alt="" loading="lazy" />';
+  }
+  function matchCard(ev) {
+    const { home, away, status } = competitors(ev);
+    const stype = status.type || {};
+    const state = stype.state;
+    const ab = function (c) { return (c.team || {}).abbreviation || ""; };
+    let big, small, smallCls;
+    if (state === "in") {
+      big = (home.score || 0) + "–" + (away.score || 0);
+      small = /ht|half/i.test(stype.shortDetail || "") ? "HT" : (status.displayClock || "LIVE");
+      smallCls = "match__small--live";
+    } else if (state === "post") {
+      big = (home.score || 0) + "–" + (away.score || 0); small = "FT"; smallCls = "";
+    } else {
+      const dt = new Date(ev.date); big = "vs"; small = !isNaN(dt) ? fmtTime(dt) : "TBD"; smallCls = "";
+    }
+    const cur = ev.id === featuredId ? " is-active" : "";
+    return '<button class="match' + cur + '" type="button" data-id="' + ev.id + '">' +
+      '<span class="match__side">' + badgeHtml(home) + '<span class="match__ab">' + escapeHtml(ab(home)) + "</span></span>" +
+      '<span class="match__cen"><span class="match__big">' + escapeHtml(big) + "</span>" +
+      '<span class="match__small ' + smallCls + '">' + escapeHtml(small) + "</span></span>" +
+      '<span class="match__side match__side--r"><span class="match__ab">' + escapeHtml(ab(away)) + "</span>" + badgeHtml(away) + "</span>" +
+      "</button>";
+  }
 
-  poll(); // kick off
+  /* ---------- featured selection ---------- */
+  function selectFeatured(id) {
+    if (!eventsById[id]) return;
+    featuredId = id;
+    // reset detail UI while the summary loads
+    $("runner-track").innerHTML = '<span class="runner__item runner__item--empty">Loading plays…</span>';
+    $("plays-list").innerHTML = '<li class="plays__empty">Loading…</li>';
+    renderFeatured(eventsById[id]);
+    markActiveCard();
+    clearTimeout(ftTimer); ftTimer = null;
+    pollFeatured();
+    try { document.getElementById("sb").scrollIntoView({ block: "nearest" }); } catch (e) {}
+  }
+  function markActiveCard() {
+    document.querySelectorAll(".match").forEach(function (c) {
+      c.classList.toggle("is-active", c.dataset.id === featuredId);
+    });
+  }
+  function pickDefault(events) {
+    const byState = function (s) { return events.filter(function (e) { return stateOf(e) === s; }); };
+    const live = byState("in");
+    if (live.length) return live[0].id;
+    const pre = byState("pre").sort(function (a, b) { return new Date(a.date) - new Date(b.date); });
+    if (pre.length) return pre[0].id;
+    const post = byState("post").sort(function (a, b) { return new Date(b.date) - new Date(a.date); });
+    if (post.length) return post[0].id;
+    return events[0] && events[0].id;
+  }
+
+  /* ---------- polling ---------- */
+  function pollFeatured() {
+    if (!featuredId) return;
+    fetch(BASE + "/summary?event=" + featuredId, { cache: "no-store" })
+      .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
+      .then(function (s) {
+        renderDetail(s);
+        const live = stateOf(eventsById[featuredId]) === "in";
+        clearTimeout(ftTimer);
+        ftTimer = live ? setTimeout(pollFeatured, 20000) : null;
+      })
+      .catch(function () { clearTimeout(ftTimer); ftTimer = setTimeout(pollFeatured, 20000); });
+  }
+  function pollScoreboard() {
+    fetch(BASE + "/scoreboard?dates=" + ymd(currentDate), { cache: "no-store" })
+      .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
+      .then(function (data) {
+        const events = data.events || [];
+        for (const k in eventsById) delete eventsById[k];
+        events.forEach(function (e) { eventsById[e.id] = e; });
+
+        $("matches-day").textContent = "· " + dayLabel(currentDate);
+        renderGrid(events);
+
+        // keep the user's featured choice if it's still on the slate, else auto-pick
+        if (!featuredId || !eventsById[featuredId]) {
+          const id = pickDefault(events);
+          if (id) selectFeatured(id);
+          else { sb.dataset.state = "empty"; $("status-text").textContent = "No match"; }
+        } else {
+          renderFeatured(eventsById[featuredId]);
+          markActiveCard();
+          if (stateOf(eventsById[featuredId]) === "in" && !ftTimer) pollFeatured();
+        }
+
+        const anyLive = events.some(function (e) { return stateOf(e) === "in"; });
+        clearTimeout(sbTimer);
+        sbTimer = (isToday(currentDate) || anyLive) ? setTimeout(pollScoreboard, 30000) : null;
+      })
+      .catch(function () { clearTimeout(sbTimer); sbTimer = setTimeout(pollScoreboard, 30000); });
+  }
+
+  function reload() {
+    clearTimeout(sbTimer); clearTimeout(ftTimer); ftTimer = null;
+    featuredId = null; // force re-pick for the new day
+    $("date-label").textContent = isToday(currentDate) ? "Today · " + dayLabel(currentDate) : dayLabel(currentDate);
+    pollScoreboard();
+  }
+
+  /* ---------- date nav ---------- */
+  function shiftDay(delta) { const d = new Date(currentDate); d.setDate(d.getDate() + delta); currentDate = d; reload(); }
+  $("date-prev").addEventListener("click", function () { shiftDay(-1); });
+  $("date-next").addEventListener("click", function () { shiftDay(1); });
+  $("date-today").addEventListener("click", function () { currentDate = new Date(); reload(); });
+
+  document.addEventListener("visibilitychange", function () {
+    if (document.hidden) { clearTimeout(sbTimer); clearTimeout(ftTimer); ftTimer = null; }
+    else { pollScoreboard(); }
+  });
+
+  reload(); // go
 })();

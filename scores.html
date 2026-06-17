@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>catwifhat — Scores</title>
-  <meta name="description" content="catwifhat scores — sports are better with cats. Live, auto-updating scoreboard and key plays. Who you got?" />
+  <meta name="description" content="catwifhat scores — sports are better with cats. Every World Cup match, live and auto-updating: scores, match clock and key plays. Who you got?" />
   <meta name="theme-color" content="#2E5FD8" />
   <link rel="icon" type="image/png" href="favicon.png" />
   <link rel="apple-touch-icon" href="apple-touch-icon.png" />
@@ -12,7 +12,7 @@
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://www.catwifusdc.com/scores.html" />
   <meta property="og:title" content="catwifhat — Scores" />
-  <meta property="og:description" content="Sports are better with cats. Live scoreboard + key plays. Who you got?" />
+  <meta property="og:description" content="Sports are better with cats. Every World Cup match, live. Who you got?" />
   <meta property="og:image" content="https://www.catwifusdc.com/fifa-matchup.jpg" />
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:image" content="https://www.catwifusdc.com/fifa-matchup.jpg" />
@@ -20,7 +20,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@600;700;800;900&family=Hanken+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css?v=10" />
+  <link rel="stylesheet" href="styles.css?v=11" />
 </head>
 <body>
 
@@ -60,24 +60,27 @@
     </div>
   </header>
 
-  <!-- SCORES -->
   <section class="scores">
     <div class="section__wrap">
       <h1 class="scores__title reveal">The Scorebox</h1>
-      <p class="scores__sub reveal">Sports are better with cats. 🐱⚽ Live and auto-updating — score, match clock and key plays, straight from the pitch.</p>
+      <p class="scores__sub reveal">Sports are better with cats. 🐱⚽ Every World Cup match, live and auto-updating — scores, match clock and key plays, straight from the pitch.</p>
 
-      <!-- Live scoreboard -->
+      <!-- Date navigation -->
+      <div class="datenav reveal">
+        <button class="datenav__btn" id="date-prev" type="button" aria-label="Previous day">‹</button>
+        <span class="datenav__label" id="date-label">—</span>
+        <button class="datenav__btn" id="date-next" type="button" aria-label="Next day">›</button>
+        <button class="datenav__today" id="date-today" type="button">Today</button>
+      </div>
+
+      <!-- Featured match -->
       <div class="scoreboard reveal" id="sb" data-state="loading">
-        <div class="scoreboard__comp">FIFA World Cup 2026 · Group stage</div>
-
+        <div class="scoreboard__comp" id="sb-comp">FIFA World Cup 2026</div>
         <div class="scoreboard__row">
-          <!-- HOME -->
           <div class="team team--home">
-            <img class="team__cat" id="home-cat" src="portugal-cat.webp" alt="Portugal cat" width="1024" height="1536" />
-            <span class="team__name" id="home-name">Portugal</span>
+            <img class="team__cat" id="home-cat" alt="" width="1024" height="1536" />
+            <span class="team__name" id="home-name">—</span>
           </div>
-
-          <!-- CENTER: score + status -->
           <div class="scoreboard__center">
             <div class="scoreboard__score">
               <span class="scoreboard__num" id="home-score">–</span>
@@ -89,18 +92,14 @@
               <span id="status-text">Loading…</span>
             </div>
           </div>
-
-          <!-- AWAY -->
           <div class="team team--away">
-            <img class="team__cat" id="away-cat" src="congo-dr-cat.webp" alt="Congo DR cat" width="1024" height="1536" />
-            <span class="team__name" id="away-name">Congo DR</span>
+            <img class="team__cat" id="away-cat" alt="" width="1024" height="1536" />
+            <span class="team__name" id="away-name">—</span>
           </div>
         </div>
-
-        <!-- Key-play runner (auto-scrolling ticker) -->
         <div class="runner" id="runner" aria-label="Key plays">
           <div class="runner__track" id="runner-track">
-            <span class="runner__item runner__item--empty">Waiting for kickoff…</span>
+            <span class="runner__item runner__item--empty">Loading…</span>
           </div>
         </div>
         <p class="scoreboard__updated" id="updated"></p>
@@ -114,26 +113,36 @@
         </ol>
       </div>
 
-      <!-- Who you got -->
+      <!-- Who you got (featured match teams) -->
       <div class="whoyougot reveal">
         <h2 class="scores__h2">Who you got? <span class="whoyougot__hint">Pick your cat &amp; rep it.</span></h2>
         <div class="whoyougot__grid">
-          <figure class="pick" data-side="home">
-            <img src="portugal-cat.webp" alt="Portugal catwifhat" width="1024" height="1536" loading="lazy" />
+          <figure class="pick" id="pick-home" data-side="home">
+            <img id="pick-home-img" alt="" />
             <figcaption>
-              <span class="pick__name">Portugal</span>
-              <a class="btn btn--ginger pick__dl" href="portugal-cat.PNG" download="portugal-catwifhat-pfp.png">Download PFP</a>
+              <span class="pick__name" id="pick-home-name">—</span>
+              <a class="btn btn--ginger pick__dl" id="pick-home-dl" hidden>Download PFP</a>
+              <span class="pick__soon" id="pick-home-soon" hidden>cat PFP soon 🎨</span>
             </figcaption>
-            <button class="pick__choose" type="button" data-side="home">I'm rolling with Portugal</button>
+            <button class="pick__choose" type="button" data-side="home">I'm rolling with this cat</button>
           </figure>
-          <figure class="pick" data-side="away">
-            <img src="congo-dr-cat.webp" alt="Congo DR catwifhat" width="1024" height="1536" loading="lazy" />
+          <figure class="pick" id="pick-away" data-side="away">
+            <img id="pick-away-img" alt="" />
             <figcaption>
-              <span class="pick__name">Congo DR</span>
-              <a class="btn btn--ginger pick__dl" href="congo-dr-cat.PNG" download="congo-dr-catwifhat-pfp.png">Download PFP</a>
+              <span class="pick__name" id="pick-away-name">—</span>
+              <a class="btn btn--ginger pick__dl" id="pick-away-dl" hidden>Download PFP</a>
+              <span class="pick__soon" id="pick-away-soon" hidden>cat PFP soon 🎨</span>
             </figcaption>
-            <button class="pick__choose" type="button" data-side="away">I'm rolling with Congo DR</button>
+            <button class="pick__choose" type="button" data-side="away">I'm rolling with this cat</button>
           </figure>
+        </div>
+      </div>
+
+      <!-- All matches for the selected day -->
+      <div class="allmatches reveal">
+        <h2 class="scores__h2">All matches <span class="whoyougot__hint" id="matches-day"></span></h2>
+        <div class="matches" id="matches">
+          <p class="matches__empty">Loading matches…</p>
         </div>
       </div>
     </div>
@@ -160,10 +169,9 @@
     </div>
   </footer>
 
-  <!-- Toast -->
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
   <script src="main.js?v=13"></script>
-  <script src="scores.js?v=2"></script>
+  <script src="scores.js?v=3"></script>
 </body>
 </html>
