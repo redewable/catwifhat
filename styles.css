@@ -1425,7 +1425,7 @@ a.sportcard:hover { transform: translateY(-4px); border-color: var(--ginger); bo
 .plays__empty { list-style: none; opacity: 0.4; padding: 0.4rem 0.2rem; }
 
 /* Share-your-pick button */
-.pick__share { display: inline-flex; align-items: center; gap: 0.5rem; margin-top: 1.2rem; }
+.pick__share { display: flex; align-items: center; justify-content: center; gap: 0.5rem; width: fit-content; margin: 1.2rem auto 0; }
 .pick__share .ico { width: 1.05em; height: 1.05em; vertical-align: -0.15em; }
 
 @media (max-width: 560px) {
