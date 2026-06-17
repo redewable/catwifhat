@@ -1562,3 +1562,7 @@ a.sportcard:hover { transform: translateY(-4px); border-color: var(--ginger); bo
 .bracket-ph { background: var(--white); border-radius: var(--radius); box-shadow: var(--shadow); padding: clamp(1.6rem, 5vw, 3.2rem); text-align: center; }
 .bracket-ph__inner h3 { font-family: var(--font-display); font-weight: 800; font-size: clamp(1.2rem, 4vw, 1.6rem); margin-bottom: 0.7rem; }
 .bracket-ph__inner p { opacity: 0.72; max-width: 52ch; margin: 0 auto; line-height: 1.5; }
+
+/* yarn soccer-ball icon (replaces the line-art ball) */
+.ic-ball { height: 1.25em; width: 1.25em; border-radius: 50%; object-fit: cover; vertical-align: -0.3em; }
+.play__icon .ic-ball { height: 1.4em; width: 1.4em; vertical-align: -0.35em; }
