@@ -57,24 +57,24 @@
 
   /* shared: a compact match card (links to the game page) */
   function badgeHtml(competitor) { const im = teamImg(competitor); return '<img class="match__badge' + (im.isCat ? "" : " match__badge--flag") + '" src="' + esc(im.src) + '" alt="" loading="lazy" />'; }
-  function matchCard(ev) {
+  function matchCard(ev, ctx) {
     const s = sides(ev), st = s.status.type || {}, state = st.state;
     const ab = function (c) { return (c.team || {}).abbreviation || ""; };
     let big, small, smallCls;
     if (state === "in") { big = (s.home.score || 0) + "–" + (s.away.score || 0); small = /ht|half/i.test(st.shortDetail || "") ? "HT" : (s.status.displayClock || "LIVE"); smallCls = "match__small--live"; }
     else if (state === "post") { big = (s.home.score || 0) + "–" + (s.away.score || 0); small = "FT"; smallCls = ""; }
     else { const dt = new Date(ev.date); big = "vs"; small = !isNaN(dt) ? fmtTime(dt) : "TBD"; smallCls = ""; }
-    return '<a class="match" href="' + gameHref(ev.id) + '">' +
+    return '<a class="match" href="' + gameHref(ev.id) + (ctx || "") + '">' +
       '<span class="match__side">' + badgeHtml(s.home) + '<span class="match__ab">' + esc(ab(s.home)) + "</span></span>" +
       '<span class="match__cen"><span class="match__big">' + esc(big) + '</span><span class="match__small ' + smallCls + '">' + esc(small) + "</span></span>" +
       '<span class="match__side match__side--r"><span class="match__ab">' + esc(ab(s.away)) + "</span>" + badgeHtml(s.away) + "</span></a>";
   }
-  function renderGrid(el, events, emptyMsg) {
+  function renderGrid(el, events, emptyMsg, ctx) {
     if (!el) return;
     if (!events.length) { el.innerHTML = '<p class="matches__empty">' + (emptyMsg || "No matches.") + "</p>"; return; }
     const rank = { in: 0, pre: 1, post: 2 };
     const sorted = events.slice().sort(function (a, b) { const ra = rank[stateOf(a)] != null ? rank[stateOf(a)] : 3, rb = rank[stateOf(b)] != null ? rank[stateOf(b)] : 3; return ra !== rb ? ra - rb : new Date(a.date) - new Date(b.date); });
-    el.innerHTML = sorted.map(matchCard).join("");
+    el.innerHTML = sorted.map(function (ev) { return matchCard(ev, ctx); }).join("");
   }
   function fetchScoreboard(date) { return fetch(BASE + "/scoreboard?dates=" + ymd(date), { cache: "no-store" }).then(function (r) { return r.ok ? r.json() : null; }).then(function (d) { return (d && d.events) || []; }); }
 
@@ -82,7 +82,9 @@
   if (HOME) {
     let groupsData = [];
     let groupsTimer = null, todayTimer = null;
+    // restore a calendar day if we arrived back from a game (?d=YYYYMMDD)
     let calDate = new Date();
+    (function () { const qd = new URLSearchParams(location.search).get("d"); if (qd && /^\d{8}$/.test(qd)) calDate = new Date(+qd.slice(0, 4), +qd.slice(4, 6) - 1, +qd.slice(6, 8)); })();
 
     /* tabs */
     const tabs = document.querySelectorAll("#tabs .tab");
@@ -146,14 +148,14 @@
       clearTimeout(groupsTimer); groupsTimer = setTimeout(fetchGroups, 300000);
     }
 
-    /* today + calendar grids */
+    /* today + calendar grids — games carry context so the game page can come back here */
     function loadToday() {
-      fetchScoreboard(new Date()).then(function (evs) { renderGrid($("matches-today"), evs, "No matches today."); }).catch(function () {});
+      fetchScoreboard(new Date()).then(function (evs) { renderGrid($("matches-today"), evs, "No matches today.", "&from=today"); }).catch(function () {});
       clearTimeout(todayTimer); todayTimer = setTimeout(loadToday, 30000);
     }
     function loadCalendar() {
       $("cal-label").textContent = isToday(calDate) ? "Today · " + dayLabel(calDate) : dayLabel(calDate);
-      fetchScoreboard(calDate).then(function (evs) { renderGrid($("cal-matches"), evs, "No matches on this date."); }).catch(function () {});
+      fetchScoreboard(calDate).then(function (evs) { renderGrid($("cal-matches"), evs, "No matches on this date.", "&from=calendar&date=" + ymd(calDate)); }).catch(function () {});
     }
     $("cal-prev") && $("cal-prev").addEventListener("click", function () { calDate.setDate(calDate.getDate() - 1); loadCalendar(); });
     $("cal-next") && $("cal-next").addEventListener("click", function () { calDate.setDate(calDate.getDate() + 1); loadCalendar(); });
@@ -187,6 +189,14 @@
   const shareImgs = { home: null, away: null };
 
   if (!EVENT_ID) { $("status-text").textContent = "No match selected"; return; }
+
+  // Context-aware back link: return to the tab (and calendar day) you came from.
+  (function () {
+    const back = $("scores-back"); if (!back) return;
+    const from = params.get("from"), date = params.get("date");
+    if (from === "calendar") { back.href = "scores-fifa.html?d=" + encodeURIComponent(date || "") + "#calendar"; back.textContent = "‹ Back to calendar"; }
+    else if (from && from !== "today") { back.href = "scores-fifa.html#" + from; }
+  })();
 
   function setBadge(imgEl, c) { const im = teamImg(c); if (im.src && !imgEl.src.endsWith(im.src)) imgEl.src = im.src; imgEl.classList.toggle("team__cat--flag", !im.isCat); imgEl.alt = ((c.team || {}).displayName || "") + (im.isCat ? " cat" : " flag"); }
   function synthEv(summary) { const h = (summary.header || {}); const c = (h.competitions || [])[0] || {}; return { id: h.id || EVENT_ID, date: c.date, shortName: h.shortName || (summary.header || {}).shortName, competitions: h.competitions || [] }; }
