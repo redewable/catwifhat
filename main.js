@@ -123,6 +123,9 @@
   /* ---------- Scroll reveal (IntersectionObserver) ---------- */
   const revealEls = document.querySelectorAll(".reveal");
   if ("IntersectionObserver" in window) {
+    // threshold:0 fires on ANY intersection — a percentage threshold can never be
+    // met by elements taller than (viewport / threshold), e.g. the long meme grid,
+    // which would otherwise stay opacity:0 and never reveal.
     const io = new IntersectionObserver(function (entries) {
       entries.forEach(function (entry) {
         if (entry.isIntersecting) {
@@ -130,7 +133,7 @@
           io.unobserve(entry.target);
         }
       });
-    }, { threshold: 0.12, rootMargin: "0px 0px -40px 0px" });
+    }, { threshold: 0, rootMargin: "0px 0px -40px 0px" });
     revealEls.forEach(function (el) { io.observe(el); });
   } else {
     // Fallback: just show everything.
