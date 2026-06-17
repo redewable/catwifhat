@@ -220,6 +220,49 @@ a { color: inherit; text-decoration: none; }
   margin: 0 0 clamp(1rem, 3vw, 2rem);
   overflow: hidden;
 }
+
+/* Live market stats ticker (DexScreener) */
+.ticker {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(0.9rem, 3.5vw, 2.2rem);
+  width: min(1080px, 92%);
+  margin: clamp(0.5rem, 2vw, 1.4rem) auto clamp(1.5rem, 4vw, 2.6rem);
+  padding: 0.85rem 1.4rem;
+  background: var(--white);
+  border: 1px solid var(--cream-d);
+  border-radius: 18px;
+  box-shadow: var(--shadow);
+  text-decoration: none;
+  color: var(--ink);
+  transition: border-color 0.15s ease, transform 0.15s ease;
+}
+.ticker:hover { border-color: var(--ginger); transform: translateY(-2px); }
+.ticker__item { display: flex; flex-direction: column; align-items: center; line-height: 1.12; }
+.ticker__label {
+  font-size: 0.66rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 700;
+  opacity: 0.5;
+}
+.ticker__val { font-size: 1.02rem; font-weight: 800; font-variant-numeric: tabular-nums; }
+.ticker__val.is-up { color: #1aa06a; }
+.ticker__val.is-down { color: #d8483c; }
+.ticker__live {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  opacity: 0.6;
+}
+.ticker__dot { width: 8px; height: 8px; border-radius: 50%; background: #1aa06a; animation: tick-pulse 1.6s ease-in-out infinite; }
+@keyframes tick-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.25; } }
 .hero__cat {
   width: 100%;
   max-height: 70vh;
@@ -515,6 +558,34 @@ a { color: inherit; text-decoration: none; }
   padding: 0;
   cursor: pointer;
 }
+/* drip + background chip groups */
+.pfp__group-label {
+  display: block;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.95rem;
+  margin-bottom: 0.5rem;
+}
+.pfp__chips { display: flex; gap: 0.45rem; flex-wrap: wrap; }
+.pfp__chip {
+  border: 2px solid var(--cream-d);
+  background: var(--white);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 0.84rem;
+  padding: 0.45rem 0.85rem;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: transform 0.12s ease, border-color 0.12s ease, background 0.12s ease, color 0.12s ease;
+}
+.pfp__chip:hover { transform: translateY(-2px); border-color: var(--ginger); }
+.pfp__chip.is-active {
+  background: var(--blue);
+  border-color: var(--blue);
+  color: var(--white);
+}
+
 .pfp__btn { width: 100%; text-align: center; }
 .pfp__ctrl {
   display: flex;
@@ -533,6 +604,23 @@ a { color: inherit; text-decoration: none; }
 .pfp__row .pfp__btn { flex: 1; }
 .pfp__download[aria-disabled="true"] { opacity: 0.45; pointer-events: none; }
 .pfp__note { font-size: 0.82rem; opacity: 0.7; line-height: 1.5; }
+.pfp__hint { font-size: 0.8rem; opacity: 0.65; line-height: 1.45; margin: 0.4rem 0 0; }
+#pfp-accctrls { display: flex; flex-direction: column; gap: 0.3rem; }
+#pfp-circle.is-active { background: var(--blue); border-color: var(--blue); color: var(--white); }
+/* Share to X — full-width blue CTA with the logo */
+.pfp__share { display: flex; align-items: center; justify-content: center; gap: 0.5rem; margin-top: 0.1rem; }
+.pfp__share .ico { width: 1.05em; height: 1.05em; vertical-align: -0.15em; }
+/* Round-crop preview: dims the corners and rings a resizable circle (--cr) */
+.pfp__stage.show-circle::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(circle,
+    rgba(0,0,0,0) calc(var(--cr, 50%) - 0.7%),
+    rgba(46,95,216,0.85) calc(var(--cr, 50%) - 0.5%) var(--cr, 50%),
+    rgba(237,228,219,0.72) calc(var(--cr, 50%) + 0.3%));
+}
 
 /* Banner box — wide 3:1 banners stacked full width */
 .banners { padding: clamp(3.5rem, 8vw, 6rem) 0; background: var(--cream-d); }
@@ -566,7 +654,28 @@ a { color: inherit; text-decoration: none; }
   font-size: 0.95rem;
   padding: 0.8rem 1.1rem 1rem;
   line-height: 1.2;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
 }
+.banner__dl {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 0.82rem;
+  color: var(--blue);
+  text-decoration: none;
+  padding: 0.4rem 0.8rem;
+  border: 2px solid var(--cream-d);
+  border-radius: 999px;
+  white-space: nowrap;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+.banner__dl:hover { background: var(--blue); border-color: var(--blue); color: var(--white); }
 
 /* Lightbox */
 .lightbox {
@@ -997,7 +1106,11 @@ a { color: inherit; text-decoration: none; }
 @media (max-width: 520px) {
   .how__grid { grid-template-columns: 1fr; }
   .stats { grid-template-columns: 1fr; }
-  .meme-grid { column-count: 1; }
+  /* Litter box on phones: compact 2-up thumbnails, image only.
+     The caption shows in the lightbox when a thumb is tapped. */
+  .meme-grid { column-count: 2; column-gap: 0.6rem; }
+  .meme-item { margin: 0 0 0.6rem; border-radius: 12px; border-width: 1px; }
+  .meme-item figcaption { display: none; }
   .hero__buttons { flex-direction: column; }
   .hero__buttons .btn { width: 100%; }
 }

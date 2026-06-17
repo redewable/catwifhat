@@ -74,6 +74,52 @@
     btn.addEventListener("click", copyContract);
   });
 
+  /* ---------- Live market stats ticker (DexScreener) ---------- */
+  const ticker = document.getElementById("livestats");
+  if (ticker) {
+    const fmtUsd = function (n) {
+      if (n == null || isNaN(n)) return "—";
+      const a = Math.abs(n);
+      if (a >= 1e9) return "$" + (n / 1e9).toFixed(2) + "B";
+      if (a >= 1e6) return "$" + (n / 1e6).toFixed(2) + "M";
+      if (a >= 1e3) return "$" + (n / 1e3).toFixed(1) + "K";
+      if (a >= 1) return "$" + n.toFixed(2);
+      // sub-dollar (memecoin) price: keep ~4 significant digits
+      return "$" + Number(n).toLocaleString("en-US", { maximumSignificantDigits: 4 });
+    };
+    const set = function (k, v) {
+      const el = ticker.querySelector('[data-k="' + k + '"]');
+      if (el) el.textContent = v;
+    };
+    function refreshStats() {
+      fetch("https://api.dexscreener.com/latest/dex/tokens/" + CONTRACT_ADDRESS)
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+          const pairs = (data && data.pairs) || [];
+          if (!pairs.length) return; // no market yet — leave the strip hidden
+          // pick the deepest-liquidity pair
+          pairs.sort(function (a, b) { return ((b.liquidity || {}).usd || 0) - ((a.liquidity || {}).usd || 0); });
+          const p = pairs[0];
+          set("price", fmtUsd(parseFloat(p.priceUsd)));
+          set("mcap", fmtUsd(p.marketCap != null ? p.marketCap : p.fdv));
+          set("vol", fmtUsd((p.volume || {}).h24));
+          set("liq", fmtUsd((p.liquidity || {}).usd));
+          const ch = (p.priceChange || {}).h24;
+          const chEl = ticker.querySelector('[data-k="change"]');
+          if (chEl && ch != null) {
+            const up = ch >= 0;
+            chEl.textContent = (up ? "+" : "") + Number(ch).toFixed(2) + "%";
+            chEl.classList.toggle("is-up", up);
+            chEl.classList.toggle("is-down", !up);
+          }
+          ticker.hidden = false;
+        })
+        .catch(function () { /* network/API hiccup — keep last values */ });
+    }
+    refreshStats();
+    setInterval(refreshStats, 30000);
+  }
+
   /* ---------- Scroll reveal (IntersectionObserver) ---------- */
   const revealEls = document.querySelectorAll(".reveal");
   if ("IntersectionObserver" in window) {
@@ -90,6 +136,24 @@
     // Fallback: just show everything.
     revealEls.forEach(function (el) { el.classList.add("in"); });
   }
+
+  /* ---------- Banner download buttons ---------- */
+  document.querySelectorAll(".banner-item").forEach(function (fig) {
+    const img = fig.querySelector("img");
+    const cap = fig.querySelector("figcaption");
+    if (!img || !cap || cap.querySelector(".banner__dl")) return;
+    // Display is WebP; download the original JPG for max compatibility on X/Telegram.
+    const orig = img.getAttribute("src").replace(/\.webp$/i, ".JPG");
+    const a = document.createElement("a");
+    a.className = "banner__dl";
+    a.href = orig;
+    a.download = orig.split("/").pop();
+    a.setAttribute("aria-label", "Download banner");
+    a.innerHTML = '<svg class="ico" aria-hidden="true" viewBox="0 0 24 24"><path fill="currentColor" d="M12 3a1 1 0 0 1 1 1v9.59l3.3-3.3a1 1 0 1 1 1.4 1.42l-5 5a1 1 0 0 1-1.4 0l-5-5a1 1 0 1 1 1.4-1.42l3.3 3.3V4a1 1 0 0 1 1-1zM5 19a1 1 0 0 1 1-1h12a1 1 0 1 1 0 2H6a1 1 0 0 1-1-1z"/></svg>Download';
+    // Don't trigger the lightbox when tapping the download button.
+    a.addEventListener("click", function (e) { e.stopPropagation(); });
+    cap.appendChild(a);
+  });
 
   /* ---------- Meme gallery lightbox ---------- */
   const lightbox = document.getElementById("lightbox");
@@ -130,7 +194,7 @@
     });
   }
 
-  /* ---------- PFP maker: pick-a-cat + recolor hat, or hat-on-your-photo ---------- */
+  /* ---------- PFP maker: recolor hat + drip + backgrounds, or hat-on-your-photo ---------- */
   const pcanvas = document.getElementById("pfp-canvas");
   if (pcanvas) {
     const cctx = pcanvas.getContext("2d");
@@ -139,7 +203,6 @@
     const uploadBtn = document.getElementById("pfp-upload-btn");
     const tabCat = document.getElementById("pfp-tab-cat");
     const tabUpload = document.getElementById("pfp-tab-upload");
-    const catsWrap = document.getElementById("pfp-cats");
     const sizeSlider = document.getElementById("pfp-size");
     const rotSlider = document.getElementById("pfp-rotate");
     const flipBtn = document.getElementById("pfp-flip");
@@ -147,25 +210,89 @@
     const dlBtn = document.getElementById("pfp-download");
     const colorInput = document.getElementById("pfp-hatcolor");
     const swatchWrap = document.getElementById("pfp-swatches");
-    let catOnly = document.querySelectorAll(".pfp__catonly");
+    const accWrap = document.getElementById("pfp-acc");
+    const bgWrap = document.getElementById("pfp-bg");
+    const accCtrls = document.getElementById("pfp-accctrls");
+    const accSizeSlider = document.getElementById("pfp-acc-size");
+    const accRotSlider = document.getElementById("pfp-acc-rotate");
+    const surpriseBtn = document.getElementById("pfp-surprise");
+    const circleBtn = document.getElementById("pfp-circle");
+    const circleCtrl = document.getElementById("pfp-circlectrl");
+    const circleSizeSlider = document.getElementById("pfp-circle-size");
+    const catSizeSlider = document.getElementById("pfp-cat-size");
+    const shareXBtn = document.getElementById("pfp-sharex");
+    const stage = pcanvas.parentElement;
+    const catOnly = document.querySelectorAll(".pfp__catonly");
     const uploadOnly = document.querySelectorAll(".pfp__uploadonly");
 
     const HAT_DEF = "#2e5fd8";
-    const CATS = [ { src: "og-catwifhat.JPG", label: "catwifhat" } ];
+
+    /* ---- Asset definitions ---- */
+    // Accessories: cx/cy = center as fraction of canvas, w = width as fraction of canvas.
+    // group = mutually-exclusive bucket (only one "eyes" accessory at a time).
+    const ACCS = {
+      aviators: { src: "acc-aviators.webp", label: "Aviators",   cx: 0.50, cy: 0.628, w: 0.50, group: "eyes" },
+      thug:     { src: "acc-thug.webp",     label: "Thug shades", cx: 0.50, cy: 0.628, w: 0.52, group: "eyes" },
+      lasers:   { src: "acc-lasers.webp",   label: "Laser eyes",  cx: 0.50, cy: 0.632, w: 0.86, group: "eyes" },
+      chain:    { src: "acc-chain.webp",    label: "Gold chain",  cx: 0.50, cy: 0.900, w: 0.58, group: "chain" },
+      halo:     { src: "acc-halo.webp",     label: "Halo",        cx: 0.50, cy: 0.115, w: 0.46, group: "halo" },
+    };
+    // Draw order (back to front). Halo behind the head reads better; chain on chest; eyes last.
+    const ACC_ORDER = ["halo", "chain", "aviators", "thug", "lasers"];
+    const BGS = {
+      original: { src: "bg-original.jpg", label: "Original" },
+      none:     { src: null,             label: "None" },
+      mars:     { src: "bg-mars.jpg",     label: "Mars" },
+      moon:     { src: "bg-moon.jpg",     label: "Moon" },
+    };
 
     let mode = "cat";
     let hatColor = HAT_DEF;
-    let catSrc = CATS[0].src;
-    let curCat = CATS[0];
-    const catCache = {};
-    let baseData = null; // cached pixels of the drawn cat (pre-recolor)
+    let bgKey = "original";
+    // active accessory state: one per group
+    const active = { eyes: null, chain: false, halo: false };
+    // per-accessory transform {cx, cy, w} — starts at the default, then user-adjustable
+    const accT = {};
+    let selectedAcc = null; // accessory currently targeted by the size slider / drag
+    function tf(name) {
+      if (!accT[name]) { const a = ACCS[name]; accT[name] = { cx: a.cx, cy: a.cy, w: a.w, rot: 0 }; }
+      return accT[name];
+    }
+    function isActive(name) {
+      const g = ACCS[name].group;
+      return g === "eyes" ? active.eyes === name : !!active[g];
+    }
+
+    const imgCache = {};
+    // Returns the (possibly still-loading) image. onReady fires once, on load completion,
+    // for images that weren't already cached — callers check .complete themselves before drawing.
+    function getImg(src, onReady) {
+      if (!src) return null;
+      let im = imgCache[src];
+      if (im) return im;
+      im = imgCache[src] = new Image();
+      im.onload = function () { onReady && onReady(im); };
+      im.src = src;
+      return im;
+    }
+
+    // Cat subject + its recolor source pixels
+    const catImg = new Image();
+    let catReady = false;
+    const catCanvas = document.createElement("canvas");
+    catCanvas.width = catCanvas.height = SIZE;
+    const catCtx = catCanvas.getContext("2d");
+    let baseCat = null; // ImageData of the drawn cat (pre-recolor)
+    // cat subject transform: scale (1 = full canvas width) + offset in canvas px
+    let catScale = 1, catX = 0, catY = 0;
+    function rebuildCat() { baseCat = null; renderCat(); }
 
     // upload-mode hat overlay
     const hatImg = new Image();
     let hatReady = false;
     const tintCanvas = document.createElement("canvas");
     const tctx = tintCanvas.getContext("2d");
-    let bg = null;
+    let bg = null; // uploaded photo
     function upState() { return { x: SIZE / 2, y: SIZE * 0.33, scale: 0.55, rot: 0, flip: false }; }
     let st = upState();
 
@@ -175,46 +302,89 @@
       const n = parseInt(h, 16);
       return { r: (n >> 16) & 255, g: (n >> 8) & 255, b: n & 255 };
     }
-    function drawCover(img) {
+    function drawCover(ctx, img) {
       const ratio = img.width / img.height;
       let dw, dh, dx, dy;
       if (ratio > 1) { dh = SIZE; dw = SIZE * ratio; dx = (SIZE - dw) / 2; dy = 0; }
       else { dw = SIZE; dh = SIZE / ratio; dx = 0; dy = (SIZE - dh) / 2; }
-      cctx.drawImage(img, dx, dy, dw, dh);
+      ctx.drawImage(img, dx, dy, dw, dh);
     }
 
-    /* ----- CAT MODE: recolor the blue hat in the chosen cat, per-pixel ----- */
-    function loadCat(src) {
-      catSrc = src;
-      curCat = CATS.filter(function (c) { return c.src === src; })[0] || CATS[0];
-      const cached = catCache[src];
-      if (cached && cached.complete && cached.naturalWidth) { drawCatBase(cached); return; }
-      const img = cached || (catCache[src] = new Image());
-      img.onload = function () { drawCatBase(img); };
-      if (!img.src) img.src = src;
-    }
-    function drawCatBase(img) {
-      cctx.clearRect(0, 0, SIZE, SIZE);
-      drawCover(img);
-      baseData = cctx.getImageData(0, 0, SIZE, SIZE);
-      recolorCat();
-      updateDownload();
-    }
-    function recolorCat() {
-      if (!baseData) return;
-      if (hatColor === HAT_DEF) { cctx.putImageData(baseData, 0, 0); return; } // original
-      const out = cctx.createImageData(SIZE, SIZE);
-      out.data.set(baseData.data);
+    /* ----- CAT MODE ----- */
+    // Build the cat layer (cat drawn full-width, top-anchored) into catCanvas, recolored.
+    function buildCatLayer() {
+      if (!catReady) return;
+      if (!baseCat) {
+        catCtx.clearRect(0, 0, SIZE, SIZE);
+        const dw = SIZE * catScale, dh = dw * catImg.height / catImg.width;
+        const dx = catX + (SIZE - dw) / 2, dy = catY; // centered horizontally, top-anchored, then offset
+        catCtx.drawImage(catImg, dx, dy, dw, dh);
+        baseCat = catCtx.getImageData(0, 0, SIZE, SIZE);
+      }
+      if (hatColor === HAT_DEF) { catCtx.putImageData(baseCat, 0, 0); return; }
+      const out = catCtx.createImageData(SIZE, SIZE);
+      out.data.set(baseCat.data);
       const d = out.data, t = hexToRgb(hatColor);
       const tl = (0.299 * t.r + 0.587 * t.g + 0.114 * t.b) || 1;
       for (let i = 0; i < d.length; i += 4) {
+        if (d[i + 3] < 80) continue; // transparent cutout area
         const r = d[i], g = d[i + 1], b = d[i + 2];
-        if (b > 90 && b - r > 18 && b - g > 10) { // blue hat pixel
+        if (b > 40 && b - r > 14 && b - g > 8 && b >= g) { // blue knit-hat pixel (incl. dark brim recesses)
           const f = (0.299 * r + 0.587 * g + 0.114 * b) / tl;
           d[i] = Math.min(255, t.r * f); d[i + 1] = Math.min(255, t.g * f); d[i + 2] = Math.min(255, t.b * f);
         }
       }
-      cctx.putImageData(out, 0, 0);
+      catCtx.putImageData(out, 0, 0);
+    }
+    // geometry of an accessory on the canvas (null until its image has loaded)
+    function accGeom(name) {
+      const im = getImg(ACCS[name].src, renderCat);
+      if (!im || !im.complete || !im.naturalWidth) return null;
+      const t = tf(name);
+      const w = SIZE * t.w, h = w * (im.naturalHeight / im.naturalWidth);
+      return { cx: SIZE * t.cx, cy: SIZE * t.cy, w: w, h: h, rot: (t.rot || 0) * Math.PI / 180, img: im };
+    }
+    function drawAcc(name) {
+      const g = accGeom(name);
+      if (!g) return;
+      cctx.save();
+      cctx.translate(g.cx, g.cy);
+      cctx.rotate(g.rot);
+      cctx.drawImage(g.img, -g.w / 2, -g.h / 2, g.w, g.h);
+      cctx.restore();
+    }
+    // point-in-accessory test that accounts for rotation (inverse-transform the point)
+    function accContains(name, p) {
+      const g = accGeom(name);
+      if (!g) return false;
+      const dx = p.x - g.cx, dy = p.y - g.cy, c = Math.cos(-g.rot), s = Math.sin(-g.rot);
+      const lx = dx * c - dy * s, ly = dx * s + dy * c;
+      return Math.abs(lx) <= g.w / 2 && Math.abs(ly) <= g.h / 2;
+    }
+    function renderCat() {
+      cctx.clearRect(0, 0, SIZE, SIZE);
+      const bgSrc = BGS[bgKey] && BGS[bgKey].src;
+      if (bgSrc) {
+        const bgi = getImg(bgSrc, renderCat);
+        if (bgi && bgi.complete && bgi.naturalWidth) drawCover(cctx, bgi);
+      }
+      buildCatLayer();
+      if (catReady) cctx.drawImage(catCanvas, 0, 0);
+      ACC_ORDER.forEach(function (name) { if (isActive(name)) drawAcc(name); });
+      // selection outline for the accessory the slider/drag will act on
+      if (selectedAcc && isActive(selectedAcc)) {
+        const g = accGeom(selectedAcc);
+        if (g) {
+          cctx.save();
+          cctx.translate(g.cx, g.cy);
+          cctx.rotate(g.rot);
+          cctx.strokeStyle = "rgba(46,95,216,0.9)";
+          cctx.lineWidth = 3;
+          cctx.setLineDash([10, 8]);
+          cctx.strokeRect(-g.w / 2, -g.h / 2, g.w, g.h);
+          cctx.restore();
+        }
+      }
     }
 
     /* ----- UPLOAD MODE: overlay a recolorable hat sticker ----- */
@@ -224,16 +394,18 @@
       tctx.globalCompositeOperation = "source-over";
       tctx.clearRect(0, 0, tintCanvas.width, tintCanvas.height);
       tctx.drawImage(hatImg, 0, 0);
-      tctx.globalCompositeOperation = "color";
-      tctx.fillStyle = hatColor;
-      tctx.fillRect(0, 0, tintCanvas.width, tintCanvas.height);
-      tctx.globalCompositeOperation = "destination-in";
-      tctx.drawImage(hatImg, 0, 0);
+      if (hatColor !== HAT_DEF) {
+        tctx.globalCompositeOperation = "color";
+        tctx.fillStyle = hatColor;
+        tctx.fillRect(0, 0, tintCanvas.width, tintCanvas.height);
+        tctx.globalCompositeOperation = "destination-in";
+        tctx.drawImage(hatImg, 0, 0);
+      }
       tctx.globalCompositeOperation = "source-over";
     }
     function renderUpload() {
       cctx.clearRect(0, 0, SIZE, SIZE);
-      if (bg) { drawCover(bg); }
+      if (bg) { drawCover(cctx, bg); }
       else {
         cctx.fillStyle = "#EDE4DB"; cctx.fillRect(0, 0, SIZE, SIZE);
         cctx.fillStyle = "rgba(26,24,20,0.45)"; cctx.textAlign = "center";
@@ -251,9 +423,9 @@
       }
     }
 
-    function render() { if (mode === "cat") recolorCat(); else renderUpload(); }
+    function render() { if (mode === "cat") renderCat(); else renderUpload(); }
     function updateDownload() {
-      const ok = (mode === "cat" && baseData) || (mode === "upload" && bg);
+      const ok = (mode === "cat" && catReady) || (mode === "upload" && bg);
       dlBtn.setAttribute("aria-disabled", ok ? "false" : "true");
     }
 
@@ -263,9 +435,17 @@
       tabUpload.classList.toggle("is-active", m === "upload");
       catOnly.forEach(function (el) { el.hidden = (m !== "cat"); });
       uploadOnly.forEach(function (el) { el.hidden = (m !== "upload"); });
-      pcanvas.style.cursor = (m === "upload") ? "grab" : "default";
-      if (m === "cat") { loadCat(catSrc); }
-      else { st = upState(); sizeSlider.value = 55; rotSlider.value = 0; buildTint(); renderUpload(); }
+      pcanvas.style.cursor = "default";
+      if (m === "cat") { syncAccCtrls(); renderCat(); }
+      else {
+        accCtrls.hidden = true;
+        // round-crop preview is a cat-mode tool — clear it when leaving
+        stage.classList.remove("show-circle");
+        circleBtn.classList.remove("is-active");
+        circleBtn.setAttribute("aria-pressed", "false");
+        circleCtrl.hidden = true;
+        st = upState(); sizeSlider.value = 55; rotSlider.value = 0; buildTint(); renderUpload();
+      }
       updateDownload();
     }
 
@@ -291,33 +471,88 @@
     });
     colorInput.addEventListener("input", function () { setColor(colorInput.value); });
 
-    // cat picker — only shown when there's more than one cat to choose from
-    if (CATS.length > 1) {
-      CATS.forEach(function (cat, i) {
-        const b = document.createElement("button");
-        b.type = "button";
-        b.className = "pfp__cat" + (i === 0 ? " is-active" : "");
-        b.title = cat.label;
-        const im = document.createElement("img");
-        im.src = cat.src; im.alt = cat.label; im.loading = "lazy";
-        b.appendChild(im);
-        b.addEventListener("click", function () {
-          Array.prototype.forEach.call(catsWrap.children, function (x) { x.classList.remove("is-active"); });
-          b.classList.add("is-active");
-          loadCat(cat.src);
-        });
-        catsWrap.appendChild(b);
+    // accessory chips (cat mode)
+    function syncAccChips() {
+      Array.prototype.forEach.call(accWrap.children, function (chip) {
+        const name = chip.dataset.acc;
+        const on = isActive(name);
+        chip.classList.toggle("is-active", on);
+        chip.setAttribute("aria-pressed", String(on));
       });
-    } else {
-      // single cat: no picker needed (drop pfp__catonly so setMode won't reveal it)
-      catsWrap.classList.remove("pfp__catonly");
-      catsWrap.hidden = true;
-      catOnly = document.querySelectorAll(".pfp__catonly"); // refresh: exclude the hidden picker
     }
+    // show/hide the size slider and point it at the selected accessory
+    function syncAccCtrls() {
+      if (selectedAcc && !isActive(selectedAcc)) selectedAcc = null;
+      const show = mode === "cat" && !!selectedAcc;
+      accCtrls.hidden = !show;
+      if (show) {
+        accSizeSlider.value = Math.round(tf(selectedAcc).w * 100);
+        accRotSlider.value = Math.round(tf(selectedAcc).rot || 0);
+      }
+    }
+    Object.keys(ACCS).forEach(function (name) {
+      const a = ACCS[name];
+      const chip = document.createElement("button");
+      chip.type = "button";
+      chip.className = "pfp__chip";
+      chip.dataset.acc = name;
+      chip.textContent = a.label;
+      chip.setAttribute("aria-pressed", "false");
+      chip.addEventListener("click", function () {
+        getImg(a.src, renderCat); // warm the cache
+        if (a.group === "eyes") { active.eyes = (active.eyes === name) ? null : name; }
+        else { active[a.group] = !active[a.group]; }
+        // selecting an accessory makes it the drag/resize target; turning the last one off clears it
+        selectedAcc = isActive(name) ? name : null;
+        syncAccChips();
+        syncAccCtrls();
+        renderCat();
+      });
+      accWrap.appendChild(chip);
+    });
+    accSizeSlider.addEventListener("input", function () {
+      if (!selectedAcc) return;
+      tf(selectedAcc).w = accSizeSlider.value / 100;
+      renderCat();
+    });
+    accRotSlider.addEventListener("input", function () {
+      if (!selectedAcc) return;
+      tf(selectedAcc).rot = +accRotSlider.value;
+      renderCat();
+    });
+    catSizeSlider.addEventListener("input", function () {
+      catScale = catSizeSlider.value / 100;
+      rebuildCat();
+    });
 
-    // hat sticker (for upload mode)
+    // background chips (cat mode)
+    function syncBgChips() {
+      Array.prototype.forEach.call(bgWrap.children, function (chip) {
+        chip.classList.toggle("is-active", chip.dataset.bg === bgKey);
+      });
+    }
+    Object.keys(BGS).forEach(function (key) {
+      const chip = document.createElement("button");
+      chip.type = "button";
+      chip.className = "pfp__chip" + (key === bgKey ? " is-active" : "");
+      chip.dataset.bg = key;
+      chip.textContent = BGS[key].label;
+      chip.addEventListener("click", function () {
+        bgKey = key;
+        if (BGS[key].src) getImg(BGS[key].src, renderCat);
+        syncBgChips();
+        renderCat();
+      });
+      bgWrap.appendChild(chip);
+    });
+
+    // cat subject
+    catImg.onload = function () { catReady = true; if (mode === "cat") renderCat(); updateDownload(); };
+    catImg.src = "pfp-cat.webp";
+
+    // hat sticker (upload mode) — uses the standalone beanie
     hatImg.onload = function () { hatReady = true; buildTint(); if (mode === "upload") renderUpload(); };
-    hatImg.src = "hat-sticker.png";
+    hatImg.src = "acc-beanie.webp";
 
     // tabs + upload
     tabCat.addEventListener("click", function () { setMode("cat"); });
@@ -344,21 +579,132 @@
       Array.prototype.forEach.call(swatchWrap.children, function (s) {
         s.classList.toggle("is-active", s.dataset.color === HAT_DEF);
       });
-      if (mode === "cat") { loadCat(catSrc); }
-      else { st = upState(); sizeSlider.value = 55; rotSlider.value = 0; buildTint(); renderUpload(); }
+      if (mode === "cat") {
+        active.eyes = null; active.chain = false; active.halo = false;
+        Object.keys(accT).forEach(function (k) { delete accT[k]; }); // restore default sizes/positions
+        selectedAcc = null;
+        bgKey = "original";
+        catScale = 1; catX = 0; catY = 0; catSizeSlider.value = 100; baseCat = null;
+        syncAccChips(); syncBgChips(); syncAccCtrls(); renderCat();
+      } else {
+        st = upState(); sizeSlider.value = 55; rotSlider.value = 0; buildTint(); renderUpload();
+      }
     });
 
-    // drag hat (upload mode only)
-    let dragging = false, last = null;
+    // ---- pointer input: drag (1 finger) + pinch zoom/rotate (2 fingers) ----
+    // In cat mode a finger on an accessory drags it; a finger on empty canvas drags the cat.
+    const pointers = new Map();
+    let dragging = false, draggingCat = false, last = null, pinch = null;
     function canvasPos(e) {
       const r = pcanvas.getBoundingClientRect();
       return { x: (e.clientX - r.left) / r.width * SIZE, y: (e.clientY - r.top) / r.height * SIZE };
     }
-    pcanvas.addEventListener("pointerdown", function (e) { if (mode !== "upload") return; dragging = true; last = canvasPos(e); pcanvas.setPointerCapture(e.pointerId); });
-    pcanvas.addEventListener("pointermove", function (e) { if (!dragging) return; const p = canvasPos(e); st.x += p.x - last.x; st.y += p.y - last.y; last = p; renderUpload(); });
-    pcanvas.addEventListener("pointerup", function () { dragging = false; });
-    pcanvas.addEventListener("pointercancel", function () { dragging = false; });
+    // topmost active accessory whose (rotated) box contains the point (front-to-back)
+    function accAt(p) {
+      for (let i = ACC_ORDER.length - 1; i >= 0; i--) {
+        const name = ACC_ORDER[i];
+        if (isActive(name) && accContains(name, p)) return name;
+      }
+      return null;
+    }
+    function norm180(d) { return ((d + 180) % 360 + 360) % 360 - 180; }
+    function twoPts() { const a = Array.from(pointers.values()); return [a[0], a[1]]; }
+    function startPinch() {
+      const [a, b] = twoPts();
+      dragging = false; draggingCat = false;
+      const d0 = Math.hypot(a.x - b.x, a.y - b.y), a0 = Math.atan2(b.y - a.y, b.x - a.x);
+      if (mode === "upload") {
+        pinch = { target: "hat", d0: d0, a0: a0, baseW: st.scale, baseRot: st.rot };
+        return;
+      }
+      // cat mode: pinch the accessory under the fingers, else pinch the cat
+      if (!selectedAcc || !isActive(selectedAcc)) {
+        const mid = { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
+        selectedAcc = accAt(mid) || accAt(a) || accAt(b);
+      }
+      if (selectedAcc) {
+        const t = tf(selectedAcc);
+        pinch = { target: "acc", d0: d0, a0: a0, baseW: t.w, baseRot: t.rot || 0 };
+        syncAccCtrls(); renderCat();
+      } else if (catReady) {
+        pinch = { target: "cat", d0: d0, a0: a0, baseW: catScale, baseRot: 0 };
+      }
+    }
+    function movePinch() {
+      const [a, b] = twoPts();
+      if (!a || !b || !pinch) return;
+      const scale = Math.hypot(a.x - b.x, a.y - b.y) / (pinch.d0 || 1);
+      const dRot = (Math.atan2(b.y - a.y, b.x - a.x) - pinch.a0) * 180 / Math.PI;
+      if (pinch.target === "hat") {
+        st.scale = Math.min(1.6, Math.max(0.1, pinch.baseW * scale));
+        st.rot = pinch.baseRot + dRot;
+        sizeSlider.value = Math.round(st.scale * 100); rotSlider.value = Math.round(norm180(st.rot));
+        renderUpload();
+      } else if (pinch.target === "cat") {
+        catScale = Math.min(1.5, Math.max(0.55, pinch.baseW * scale));
+        catSizeSlider.value = Math.round(catScale * 100);
+        rebuildCat();
+      } else {
+        const t = tf(selectedAcc);
+        t.w = Math.min(1.4, Math.max(0.15, pinch.baseW * scale));
+        t.rot = pinch.baseRot + dRot;
+        accSizeSlider.value = Math.round(t.w * 100); accRotSlider.value = Math.round(norm180(t.rot));
+        renderCat();
+      }
+    }
+    pcanvas.addEventListener("pointerdown", function (e) {
+      const p = canvasPos(e);
+      pointers.set(e.pointerId, p);
+      pcanvas.setPointerCapture(e.pointerId);
+      if (pointers.size === 2) { startPinch(); return; }
+      if (mode === "upload") { dragging = true; last = p; return; }
+      // cat mode: grab an accessory, or drag the cat itself
+      const hit = accAt(p);
+      if (hit) {
+        selectedAcc = hit; dragging = true; last = p;
+        pcanvas.style.cursor = "grabbing";
+        syncAccCtrls(); renderCat();
+      } else if (catReady) {
+        draggingCat = true; last = p; pcanvas.style.cursor = "grabbing";
+      }
+    });
+    pcanvas.addEventListener("pointermove", function (e) {
+      if (pointers.has(e.pointerId)) pointers.set(e.pointerId, canvasPos(e));
+      if (pinch && pointers.size >= 2) { movePinch(); return; }
+      if (mode === "cat") {
+        if (draggingCat) {
+          const p = canvasPos(e); catX += p.x - last.x; catY += p.y - last.y; last = p; rebuildCat();
+          return;
+        }
+        if (!dragging) { pcanvas.style.cursor = accAt(canvasPos(e)) ? "grab" : "move"; return; }
+        const p = canvasPos(e), t = tf(selectedAcc);
+        t.cx += (p.x - last.x) / SIZE; t.cy += (p.y - last.y) / SIZE; last = p;
+        renderCat();
+        return;
+      }
+      if (!dragging) return;
+      const p = canvasPos(e); st.x += p.x - last.x; st.y += p.y - last.y; last = p; renderUpload();
+    });
+    function endPointer(e) {
+      pointers.delete(e.pointerId);
+      if (pointers.size < 2) pinch = null;
+      if (pointers.size === 0) { dragging = false; draggingCat = false; if (mode === "cat") pcanvas.style.cursor = "default"; }
+    }
+    pcanvas.addEventListener("pointerup", endPointer);
+    pcanvas.addEventListener("pointercancel", endPointer);
     pcanvas.addEventListener("wheel", function (e) {
+      if (mode === "cat") {
+        e.preventDefault();
+        if (selectedAcc) {
+          const t = tf(selectedAcc);
+          t.w = Math.min(1.4, Math.max(0.15, t.w - e.deltaY * 0.0008));
+          accSizeSlider.value = Math.round(t.w * 100); renderCat();
+        } else if (catReady) {
+          catScale = Math.min(1.5, Math.max(0.55, catScale - e.deltaY * 0.0008));
+          catSizeSlider.value = Math.round(catScale * 100); rebuildCat();
+        }
+        return;
+      }
       if (mode !== "upload") return;
       e.preventDefault();
       st.scale = Math.min(1.6, Math.max(0.1, st.scale - e.deltaY * 0.0008));
@@ -380,10 +726,22 @@
       while (n--) u8[n] = bstr.charCodeAt(n);
       return new File([u8], name, { type: mime });
     }
+    // Render once without the selection outline and return the PNG data URL.
+    function exportPng() {
+      let restore = null;
+      if (mode === "cat" && selectedAcc) {
+        const keep = selectedAcc; selectedAcc = null; renderCat();
+        restore = function () { selectedAcc = keep; renderCat(); };
+      }
+      const url = pcanvas.toDataURL("image/png");
+      if (restore) restore();
+      return url;
+    }
+    function canExport() { return mode === "cat" ? catReady : !!bg; }
     dlBtn.addEventListener("click", function () {
       if (dlBtn.getAttribute("aria-disabled") === "true") return;
       // Build the PNG synchronously so the share sheet still counts as a user tap (iOS).
-      const dataUrl = pcanvas.toDataURL("image/png");
+      const dataUrl = exportPng();
       const file = dataUrlToFile(dataUrl, "my-catwifhat-pfp.png");
       // Native share sheet → iOS "Save Image" sends it to Photos; Android "Save to gallery".
       if (navigator.canShare && navigator.canShare({ files: [file] })) {
@@ -397,6 +755,64 @@
         downloadDataUrl(dataUrl);                          // desktop / unsupported
         showToast("PFP saved!");
       }
+    });
+
+    /* ---- Share to X ---- */
+    const SHARE_TEXT = "I made my #catwifhat 🐱🧢\n$WIF, but on $USDC\ncatwifusdc.com";
+    function openXIntent(dataUrl) {
+      // X's web composer can't attach an image, so save it and open the tweet box with text.
+      downloadDataUrl(dataUrl);
+      showToast("image saved — attach it to your post!");
+      window.open("https://twitter.com/intent/tweet?text=" + encodeURIComponent(SHARE_TEXT), "_blank", "noopener");
+    }
+    shareXBtn.addEventListener("click", function () {
+      if (!canExport()) { showToast("make your cat first!"); return; }
+      const dataUrl = exportPng();
+      const file = dataUrlToFile(dataUrl, "my-catwifhat-pfp.png");
+      // Mobile: the native sheet lets them post straight to X with the image attached.
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        navigator.share({ files: [file], text: SHARE_TEXT })
+          .then(function () { showToast("shared!"); })
+          .catch(function (err) {
+            if (err && err.name === "AbortError") return;
+            openXIntent(dataUrl);
+          });
+      } else {
+        openXIntent(dataUrl);
+      }
+    });
+
+    /* ---- Surprise me: randomize hat color + drip + background ---- */
+    const SURPRISE_COLORS = ["#2e5fd8", "#e08a3c", "#e84393", "#22b07d", "#8e44ad", "#111111", "#f2f2f2", "#ff5a36", "#00b3d6", "#ffd400", "#7b3fe4"];
+    function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+    surpriseBtn.addEventListener("click", function () {
+      if (mode !== "cat") setMode("cat");
+      const col = pick(SURPRISE_COLORS);
+      hatColor = col; colorInput.value = col.toUpperCase();
+      Array.prototype.forEach.call(swatchWrap.children, function (s) {
+        s.classList.toggle("is-active", s.dataset.color === hatColor);
+      });
+      active.eyes = pick([null, "aviators", "thug", "lasers"]);
+      active.chain = Math.random() < 0.5;
+      active.halo = Math.random() < 0.35;
+      Object.keys(accT).forEach(function (k) { delete accT[k]; }); // clean default placements
+      selectedAcc = null;
+      bgKey = pick(Object.keys(BGS));
+      if (BGS[bgKey].src) getImg(BGS[bgKey].src, renderCat);
+      ACC_ORDER.forEach(function (n) { if (isActive(n)) getImg(ACCS[n].src, renderCat); });
+      syncAccChips(); syncBgChips(); syncAccCtrls(); renderCat();
+      showToast("surprise! 🎲");
+    });
+
+    /* ---- Round-crop preview toggle + size ---- */
+    circleBtn.addEventListener("click", function () {
+      const on = stage.classList.toggle("show-circle");
+      circleBtn.classList.toggle("is-active", on);
+      circleBtn.setAttribute("aria-pressed", String(on));
+      circleCtrl.hidden = !on;
+    });
+    circleSizeSlider.addEventListener("input", function () {
+      stage.style.setProperty("--cr", circleSizeSlider.value + "%");
     });
 
     // init — force default colors (ignore any browser-restored input values)
