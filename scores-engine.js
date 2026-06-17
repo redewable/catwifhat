@@ -30,7 +30,7 @@
   function tzAbbr(d) { try { const p = new Intl.DateTimeFormat([], { timeZoneName: "short" }).formatToParts(d).filter(function (x) { return x.type === "timeZoneName"; })[0]; return p ? p.value : ""; } catch (e) { return ""; } }
   function esc(s) { return String(s == null ? "" : s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
   function svgIc(id, extra) { return '<svg class="ic' + (extra ? " " + extra : "") + '" aria-hidden="true"><use href="#' + id + '"/></svg>'; }
-  function iconFor(t) { t = (t || "").toLowerCase(); if (t.indexOf("goal") > -1) return '<img class="ic-ball" src="icon-ball.webp" alt="goal" />'; if (t.indexOf("yellow") > -1) return svgIc("ic-card", "ic--yellow"); if (t.indexOf("red") > -1) return svgIc("ic-card", "ic--red"); if (t.indexOf("var") > -1) return svgIc("ic-var"); return "•"; }
+  function iconFor(t) { t = (t || "").toLowerCase(); if (t.indexOf("goal") > -1) return '<img class="ic-ball" src="icon-ball.webp?v=2" alt="goal" />'; if (t.indexOf("yellow") > -1) return svgIc("ic-card", "ic--yellow"); if (t.indexOf("red") > -1) return svgIc("ic-card", "ic--red"); if (t.indexOf("var") > -1) return svgIc("ic-var"); return "•"; }
   function isKey(t) { return /goal|yellow|red|penalt|var/i.test(t || ""); }
   function colorOf(team, fb) { const c = (team || {}).color; if (!c) return fb; const hex = "#" + String(c).replace("#", ""); const n = parseInt(hex.slice(1), 16); const lum = ((n >> 16 & 255) * 0.299 + (n >> 8 & 255) * 0.587 + (n & 255) * 0.114); return lum > 225 ? fb : hex; }
   function teamImg(competitor) {
