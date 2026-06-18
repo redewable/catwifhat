@@ -18,7 +18,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@600;700;800;900&family=Hanken+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css?v=26" />
+  <link rel="stylesheet" href="styles.css?v=27" />
 </head>
 <body>
 
@@ -51,8 +51,13 @@
 
       <div class="golfhead reveal">
         <span class="golfhead__badge" id="golf-badge"><span class="livedot" id="golf-live" hidden></span> <span id="golf-state">Loading…</span></span>
-        <h1 class="scores__title" id="golf-title">PGA Tour</h1>
-        <p class="scores__sub" id="golf-meta">Live leaderboard, auto-updating. <img class="emo" src="icon-cat.webp" alt="cat" /></p>
+        <div class="golfhead__hd">
+          <img class="golfhead__cat" src="pfp-cat.webp" alt="catwifhat" />
+          <div>
+            <h1 class="scores__title" id="golf-title">PGA Tour</h1>
+            <p class="scores__sub" id="golf-meta">The major's live leaderboard — the litter's watching. <img class="emo" src="icon-cat.webp" alt="cat" /> Tap any player to open their scorecard.</p>
+          </div>
+        </div>
         <p class="golfhead__venue" id="golf-venue" hidden></p>
       </div>
 
@@ -85,6 +90,6 @@
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
   <script src="main.js?v=17"></script>
-  <script src="scores-golf.js?v=1"></script>
+  <script src="scores-golf.js?v=3"></script>
 </body>
 </html>

@@ -326,7 +326,8 @@
     if (!xi(hr).length && !xi(ar).length) { wrap.hidden = true; return; }
     const fmt = function (r) { return r.formation ? '<span class="lineups__form">' + esc(r.formation) + "</span>" : ""; };
     const head = function (team, color, r) { return '<span class="lineups__dot" style="color:' + color + '">●</span><span class="lineups__teamname">' + esc((team || {}).displayName || "") + "</span>" + fmt(r); };
-    const list = function (r) { return xi(r).map(function (p) { return '<li><span class="lineups__pos">' + esc((p.position || {}).abbreviation || "") + '</span><span class="lineups__num">' + esc(p.jersey || "") + '</span><span class="lineups__nm">' + esc((p.athlete || {}).displayName || "") + "</span></li>"; }).join(""); };
+    const nameLines = function (full) { full = String(full || "").trim(); const p = full.split(/\s+/); if (p.length < 2) return { fn: "", ln: full }; return { fn: p[0], ln: p.slice(1).join(" ") }; };
+    const list = function (r) { return xi(r).map(function (p) { const nl = nameLines((p.athlete || {}).displayName || ""); return '<li><span class="lineups__pos">' + esc((p.position || {}).abbreviation || "") + '</span><span class="lineups__num">' + esc(p.jersey || "") + '</span><span class="lineups__nm"><span class="lineups__fn">' + esc(nl.fn) + '</span><span class="lineups__ln">' + esc(nl.ln) + "</span></span></li>"; }).join(""); };
     $("lineup-home-head").innerHTML = head(home.team, hC, hr);
     $("lineup-away-head").innerHTML = head(away.team, aC, ar);
     $("lineup-home").innerHTML = list(hr) || "<li class=\"plays__empty\">TBD</li>"; $("lineup-away").innerHTML = list(ar) || "<li class=\"plays__empty\">TBD</li>";
