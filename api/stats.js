@@ -19,6 +19,12 @@ const TOKEN = cleanEnv(process.env.STATS_TOKEN);
 
 module.exports = async function handler(req, res) {
   res.setHeader("Cache-Control", "no-store");
+  // Safe wiring check (booleans + host only, never secret values): /api/stats?diag=1
+  if (req.query && req.query.diag) {
+    let host = ""; try { host = SB_URL ? new (require("url").URL)(SB_URL).host : ""; } catch (e) { host = "(unparseable url)"; }
+    res.status(200).json({ hasUrl: !!SB_URL, hasServiceKey: !!SB_KEY, hasToken: !!TOKEN, host: host });
+    return;
+  }
   if (!SB_URL || !SB_KEY) { res.status(200).json({ configured: false }); return; }
   if (!TOKEN || (req.query && req.query.key) !== TOKEN) { res.status(401).json({ error: "unauthorized" }); return; }
 
