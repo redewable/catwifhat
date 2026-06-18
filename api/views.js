@@ -13,8 +13,11 @@
    front-end simply hides the counter (graceful, no errors).
    ============================================================ */
 
-const URL = process.env.UPSTASH_REDIS_REST_URL;
-const TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN;
+// Tolerate values accidentally pasted with their NAME= prefix and/or quotes
+// (e.g. a whole .env line dropped into Vercel's value box).
+function cleanEnv(v) { return v == null ? v : String(v).trim().replace(/^[A-Za-z_][A-Za-z0-9_]*=/, "").replace(/^["']|["']$/g, "").trim(); }
+const URL = cleanEnv(process.env.UPSTASH_REDIS_REST_URL);
+const TOKEN = cleanEnv(process.env.UPSTASH_REDIS_REST_TOKEN);
 
 async function redis(command) {
   const res = await fetch(URL + "/" + command.map(encodeURIComponent).join("/"), {
