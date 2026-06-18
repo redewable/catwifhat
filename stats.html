@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex, nofollow" />
+  <meta name="referrer" content="no-referrer" />
+  <title>catwifhat — Analytics</title>
+  <link rel="icon" type="image/png" href="favicon.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@600;700;800;900&family=Hanken+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root { --ink:#1a1814; --cream:#f3ece1; --cream-d:#e2d6c9; --white:#fffaf4; --blue:#2e5fd8; --ginger:#e08a3c; --green:#1aa06a; --shadow:0 6px 20px rgba(26,24,20,.07); }
+    * { box-sizing:border-box; }
+    body { margin:0; background:var(--cream); color:var(--ink); font-family:'Hanken Grotesk',system-ui,sans-serif; }
+    .wrap { max-width:1100px; margin:0 auto; padding:clamp(1.2rem,4vw,2.4rem); }
+    h1 { font-family:'Unbounded',sans-serif; font-weight:900; font-size:clamp(1.6rem,5vw,2.4rem); margin:0; }
+    .sub { opacity:.6; margin:.3rem 0 0; font-weight:600; }
+    .top { display:flex; flex-wrap:wrap; gap:1rem; align-items:center; justify-content:space-between; margin-bottom:1.6rem; }
+    .ranges { display:flex; gap:.4rem; flex-wrap:wrap; }
+    .rbtn { border:2px solid var(--cream-d); background:var(--white); color:var(--ink); font-weight:700; font-size:.85rem; padding:.45rem .9rem; border-radius:999px; cursor:pointer; }
+    .rbtn.is-on { background:var(--blue); border-color:var(--blue); color:#fff; }
+    .cards { display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:1rem; margin-bottom:1.6rem; }
+    .card { background:var(--white); border-radius:16px; box-shadow:var(--shadow); padding:1.1rem 1.2rem; }
+    .card__k { font-size:.72rem; font-weight:800; text-transform:uppercase; letter-spacing:.05em; opacity:.5; }
+    .card__v { font-family:'Unbounded',sans-serif; font-weight:800; font-size:clamp(1.5rem,4vw,2rem); margin-top:.3rem; }
+    .panel { background:var(--white); border-radius:16px; box-shadow:var(--shadow); padding:1.2rem 1.3rem; margin-bottom:1.4rem; }
+    .panel h2 { font-family:'Unbounded',sans-serif; font-weight:800; font-size:1.05rem; margin:0 0 1rem; }
+    .grid2 { display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:1.4rem; }
+    .bar { display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:center; gap:.6rem; padding:.35rem 0; }
+    .bar + .bar { border-top:1px solid var(--cream-d); }
+    .bar__l { min-width:0; }
+    .bar__name { font-weight:700; font-size:.92rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .bar__track { height:7px; border-radius:999px; background:var(--cream-d); margin-top:.3rem; overflow:hidden; }
+    .bar__fill { height:100%; background:var(--blue); border-radius:999px; }
+    .bar__n { font-family:'Unbounded',sans-serif; font-weight:800; font-size:.92rem; white-space:nowrap; }
+    .bar__n small { font-family:'Hanken Grotesk'; font-weight:700; opacity:.45; font-size:.72rem; margin-left:.25rem; }
+    .events { display:grid; grid-template-columns:repeat(auto-fit,minmax(130px,1fr)); gap:.8rem; }
+    .ev { background:var(--cream); border-radius:12px; padding:.7rem .8rem; }
+    .ev__k { font-size:.72rem; font-weight:700; opacity:.6; }
+    .ev__v { font-family:'Unbounded',sans-serif; font-weight:800; font-size:1.3rem; }
+    .muted { opacity:.55; }
+    .setup { background:var(--white); border-radius:16px; box-shadow:var(--shadow); padding:1.4rem 1.5rem; line-height:1.6; }
+    .setup code { background:var(--cream); padding:.1rem .4rem; border-radius:6px; font-size:.9em; }
+    .setup ol { padding-left:1.2rem; }
+    input[type=password] { font:inherit; padding:.6rem .8rem; border:2px solid var(--cream-d); border-radius:10px; width:100%; max-width:340px; }
+    .btn { font:inherit; font-weight:800; border:none; background:var(--blue); color:#fff; padding:.6rem 1.1rem; border-radius:10px; cursor:pointer; }
+    svg text { font-family:'Hanken Grotesk',sans-serif; }
+    a { color:var(--blue); }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="top">
+      <div>
+        <h1>catwifhat · analytics 🐾</h1>
+        <p class="sub" id="sub">Loading…</p>
+      </div>
+      <div class="ranges" id="ranges" hidden>
+        <button class="rbtn" data-d="1">24h</button>
+        <button class="rbtn is-on" data-d="7">7d</button>
+        <button class="rbtn" data-d="30">30d</button>
+        <button class="rbtn" data-d="90">90d</button>
+      </div>
+    </div>
+    <div id="view"></div>
+  </div>
+
+  <script>
+  (function () {
+    var $ = function (id) { return document.getElementById(id); };
+    var view = $("view"), sub = $("sub"), ranges = $("ranges");
+    var KEY = new URLSearchParams(location.search).get("key");
+    try { if (KEY) localStorage.setItem("wif_stats_key", KEY); else KEY = localStorage.getItem("wif_stats_key"); } catch (e) {}
+    var days = 7;
+
+    function esc(s) { return String(s == null ? "" : s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
+    function n(x) { return (Number(x) || 0).toLocaleString(); }
+
+    function askKey(msg) {
+      ranges.hidden = true; sub.textContent = msg || "Enter your dashboard key";
+      view.innerHTML = '<div class="setup"><p>' + esc(msg || "This dashboard is private.") + '</p>' +
+        '<input type="password" id="k" placeholder="STATS_TOKEN" /> <button class="btn" id="go">Open</button></div>';
+      $("go").onclick = function () { KEY = $("k").value.trim(); try { localStorage.setItem("wif_stats_key", KEY); } catch (e) {} load(); };
+      $("k").addEventListener("keydown", function (e) { if (e.key === "Enter") $("go").click(); });
+    }
+    function setupHelp() {
+      ranges.hidden = true; sub.textContent = "Backend not configured yet";
+      view.innerHTML = '<div class="setup"><h2>Finish the setup</h2><ol>' +
+        '<li>In <b>Supabase</b> → SQL editor, run <code>supabase-analytics.sql</code> from the repo.</li>' +
+        '<li>In <b>Vercel</b> → Project → Settings → Environment Variables, add: <code>SUPABASE_URL</code>, <code>SUPABASE_SERVICE_ROLE_KEY</code> (the service_role secret), and <code>STATS_TOKEN</code> (any long random string).</li>' +
+        '<li>Redeploy. Then open <code>/stats?key=YOUR_STATS_TOKEN</code>.</li>' +
+        '</ol><p class="muted">Tracking is already live in the site; events will start flowing the moment the env vars are set.</p></div>';
+    }
+
+    function bars(list, opts) {
+      list = list || []; opts = opts || {};
+      if (!list.length) return '<p class="muted">No data yet.</p>';
+      var max = Math.max.apply(null, list.map(function (x) { return x.count || 0; })) || 1;
+      return list.map(function (x) {
+        var w = Math.max(3, Math.round((x.count || 0) / max * 100));
+        var label = x.label == null || x.label === "" ? "(none)" : x.label;
+        if (opts.map) label = opts.map(label);
+        return '<div class="bar"><div class="bar__l"><div class="bar__name">' + esc(label) + '</div>' +
+          '<div class="bar__track"><div class="bar__fill" style="width:' + w + '%"></div></div></div>' +
+          '<div class="bar__n">' + n(x.count) + (x.visitors != null ? '<small>' + n(x.visitors) + ' ppl</small>' : "") + "</div></div>";
+      }).join("");
+    }
+
+    function lineChart(series) {
+      series = series || [];
+      if (series.length < 2) return '<p class="muted">Not enough data yet to chart.</p>';
+      var W = 900, H = 220, pad = 30;
+      var max = Math.max.apply(null, series.map(function (p) { return p.views || 0; })) || 1;
+      var step = (W - pad * 2) / (series.length - 1);
+      function X(i) { return pad + i * step; }
+      function Y(v) { return H - pad - (v / max) * (H - pad * 2); }
+      var dViews = series.map(function (p, i) { return (i ? "L" : "M") + X(i).toFixed(1) + " " + Y(p.views || 0).toFixed(1); }).join(" ");
+      var dVisit = series.map(function (p, i) { return (i ? "L" : "M") + X(i).toFixed(1) + " " + Y(p.visitors || 0).toFixed(1); }).join(" ");
+      var area = dViews + " L" + X(series.length - 1).toFixed(1) + " " + (H - pad) + " L" + X(0).toFixed(1) + " " + (H - pad) + " Z";
+      function lbl(p) { try { var d = new Date(p.bucket); return d.toLocaleDateString([], { month: "short", day: "numeric" }); } catch (e) { return ""; } }
+      var ticks = "";
+      var stepLbl = Math.ceil(series.length / 7);
+      series.forEach(function (p, i) { if (i % stepLbl === 0) ticks += '<text x="' + X(i).toFixed(1) + '" y="' + (H - 8) + '" font-size="12" fill="rgba(26,24,20,.5)" text-anchor="middle">' + esc(lbl(p)) + "</text>"; });
+      return '<svg viewBox="0 0 ' + W + " " + H + '" style="width:100%;height:auto">' +
+        '<path d="' + area + '" fill="rgba(46,95,216,.10)"/>' +
+        '<path d="' + dViews + '" fill="none" stroke="#2e5fd8" stroke-width="3" stroke-linejoin="round"/>' +
+        '<path d="' + dVisit + '" fill="none" stroke="#e08a3c" stroke-width="2.5" stroke-dasharray="6 5" stroke-linejoin="round"/>' +
+        ticks +
+        '<text x="' + pad + '" y="16" font-size="12" fill="#2e5fd8" font-weight="700">— pageviews</text>' +
+        '<text x="' + (pad + 110) + '" y="16" font-size="12" fill="#e08a3c" font-weight="700">— visitors</text>' +
+        "</svg>";
+    }
+
+    var EVENTS = [
+      { k: "buy_click", label: "Buy clicks" }, { k: "trade_click", label: "Trade clicks" },
+      { k: "copy_contract", label: "Contract copies" }, { k: "meme_open", label: "Meme opens" },
+      { k: "pfp_download", label: "PFP saves" }, { k: "poll_vote", label: "Poll votes" },
+      { k: "share_click", label: "Shares" }, { k: "scores_tab", label: "Scores tabs" }
+    ];
+
+    function render(d) {
+      ranges.hidden = false;
+      var o = d.overview || {}, by = o.by_type || {};
+      sub.textContent = "Last " + d.days + (d.days === 1 ? " day" : " days") + " · auto first-party tracking";
+      view.innerHTML =
+        '<div class="cards">' +
+          card("Pageviews", n(o.pageviews)) +
+          card("Unique visitors", n(o.visitors)) +
+          card("Sessions", n(o.sessions)) +
+          card("Total events", n(o.events)) +
+        "</div>" +
+        '<div class="panel"><h2>Traffic over time</h2>' + lineChart(d.series) + "</div>" +
+        '<div class="panel"><h2>Attention &amp; conversions</h2><div class="events">' +
+          EVENTS.map(function (e) { return '<div class="ev"><div class="ev__k">' + esc(e.label) + '</div><div class="ev__v">' + n(by[e.k]) + "</div></div>"; }).join("") +
+        "</div></div>" +
+        '<div class="grid2">' +
+          panel("Top sources (referrers)", bars(d.referrers, { map: function (l) { return l === "(none)" ? "Direct / none" : l; } })) +
+          panel("Campaign tags (utm_source)", bars(d.sources)) +
+          panel("Top pages", bars(d.pages)) +
+          panel("Countries", bars(d.countries)) +
+          panel("Devices", bars(d.devices)) +
+          panel("Campaigns (utm_campaign)", bars(d.campaigns)) +
+        "</div>";
+    }
+    function card(k, v) { return '<div class="card"><div class="card__k">' + esc(k) + '</div><div class="card__v">' + v + "</div></div>"; }
+    function panel(title, html) { return '<div class="panel"><h2>' + esc(title) + "</h2>" + html + "</div>"; }
+
+    function load() {
+      if (!KEY) { askKey("This dashboard is private — enter your STATS_TOKEN."); return; }
+      sub.textContent = "Loading…";
+      fetch("/api/stats?key=" + encodeURIComponent(KEY) + "&days=" + days, { cache: "no-store" })
+        .then(function (r) { if (r.status === 401) { throw "unauth"; } return r.ok ? r.json() : null; })
+        .then(function (d) {
+          if (!d) { sub.textContent = "Couldn't load."; return; }
+          if (d.configured === false) { setupHelp(); return; }
+          render(d);
+        })
+        .catch(function (e) { if (e === "unauth") askKey("Wrong key — try again."); else sub.textContent = "Couldn't load."; });
+    }
+
+    Array.prototype.forEach.call(ranges.querySelectorAll(".rbtn"), function (b) {
+      b.addEventListener("click", function () {
+        Array.prototype.forEach.call(ranges.children, function (x) { x.classList.remove("is-on"); });
+        b.classList.add("is-on"); days = +b.dataset.d; load();
+      });
+    });
+    load();
+  })();
+  </script>
+</body>
+</html>
