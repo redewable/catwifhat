@@ -907,10 +907,9 @@
     el.hidden = false;
   }
   try {
+    // Count every page load (classic hit counter) so the number visibly climbs.
     var slug = slugify();
-    var hit = false;
-    try { var k = "wif-viewed-" + slug; if (!sessionStorage.getItem(k)) { hit = true; sessionStorage.setItem(k, "1"); } } catch (e) { hit = true; }
-    fetch("/api/views?page=" + encodeURIComponent(slug) + (hit ? "&hit=1" : ""), { cache: "no-store" })
+    fetch("/api/views?page=" + encodeURIComponent(slug) + "&hit=1", { cache: "no-store" })
       .then(function (r) { return r.ok ? r.json() : null; })
       .then(function (d) { if (d && d.configured !== false && d.views != null) show(d.views); })
       .catch(function () {});
