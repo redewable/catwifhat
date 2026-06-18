@@ -22,7 +22,17 @@ module.exports = async function handler(req, res) {
   // Safe wiring check (booleans + host only, never secret values): /api/stats?diag=1
   if (req.query && req.query.diag) {
     let host = ""; try { host = SB_URL ? new (require("url").URL)(SB_URL).host : ""; } catch (e) { host = "(unparseable url)"; }
-    res.status(200).json({ hasUrl: !!SB_URL, hasServiceKey: !!SB_KEY, hasToken: !!TOKEN, host: host });
+    let rpcOk = false;
+    if (SB_URL && SB_KEY) {
+      try {
+        const r = await fetch(SB_URL.replace(/\/$/, "") + "/rest/v1/rpc/stats_overview", {
+          method: "POST", headers: { apikey: SB_KEY, Authorization: "Bearer " + SB_KEY, "Content-Type": "application/json" },
+          body: JSON.stringify({ p_since: new Date(0).toISOString() })
+        });
+        rpcOk = r.ok;   // true only if the SQL functions exist
+      } catch (e) {}
+    }
+    res.status(200).json({ hasUrl: !!SB_URL, hasServiceKey: !!SB_KEY, hasToken: !!TOKEN, host: host, rpcOk: rpcOk });
     return;
   }
   if (!SB_URL || !SB_KEY) { res.status(200).json({ configured: false }); return; }
