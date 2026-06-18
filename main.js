@@ -385,6 +385,17 @@
       for (let i = 0; i < 4; i++) { if (Math.hypot(p.x - cs[i].x, p.y - cs[i].y) <= HANDLE_HIT) return true; }
       return false;
     }
+    // rotate handle sits on a stalk above the top edge
+    const ROT_OFFSET = 70;
+    function rotHandlePt(g) {
+      var ly = -g.h / 2 - ROT_OFFSET, c = Math.cos(g.rot), s = Math.sin(g.rot);
+      return { x: g.cx - ly * s, y: g.cy + ly * c };  // local (0, ly) rotated about center
+    }
+    function rotHandleHit(name, p) {
+      const g = accGeom(name); if (!g) return false;
+      const h = rotHandlePt(g);
+      return Math.hypot(p.x - h.x, p.y - h.y) <= HANDLE_HIT;
+    }
     function renderCat() {
       cctx.clearRect(0, 0, SIZE, SIZE);
       const bgSrc = BGS[bgKey] && BGS[bgKey].src;
@@ -409,6 +420,14 @@
           // draggable corner handles
           cctx.setLineDash([]);
           const hw = g.w / 2, hh = g.h / 2;
+          // rotate handle: stalk + circle above the top edge
+          cctx.beginPath(); cctx.moveTo(0, -hh); cctx.lineTo(0, -hh - ROT_OFFSET);
+          cctx.lineWidth = 3; cctx.strokeStyle = "rgba(46,95,216,0.95)"; cctx.stroke();
+          cctx.beginPath(); cctx.arc(0, -hh - ROT_OFFSET, HANDLE_R, 0, Math.PI * 2);
+          cctx.fillStyle = "#fff"; cctx.fill(); cctx.lineWidth = 4; cctx.strokeStyle = "rgba(46,95,216,0.95)"; cctx.stroke();
+          // little circular-arrow glyph to read as "rotate"
+          cctx.beginPath(); cctx.arc(0, -hh - ROT_OFFSET, HANDLE_R * 0.5, -2.4, 1.2);
+          cctx.lineWidth = 3; cctx.strokeStyle = "rgba(46,95,216,0.95)"; cctx.stroke();
           [[-hw, -hh], [hw, -hh], [hw, hh], [-hw, hh]].forEach(function (q) {
             cctx.beginPath(); cctx.arc(q[0], q[1], HANDLE_R, 0, Math.PI * 2);
             cctx.fillStyle = "#fff"; cctx.fill();
@@ -644,7 +663,7 @@
     // ---- pointer input: drag (1 finger) + pinch zoom/rotate (2 fingers) ----
     // In cat mode a finger on an accessory drags it; a finger on empty canvas drags the cat.
     const pointers = new Map();
-    let dragging = false, draggingCat = false, last = null, pinch = null, resizing = false, resizeStart = null;
+    let dragging = false, draggingCat = false, last = null, pinch = null, resizing = false, resizeStart = null, rotating = false, rotStart = null;
     function canvasPos(e) {
       const r = pcanvas.getBoundingClientRect();
       return { x: (e.clientX - r.left) / r.width * SIZE, y: (e.clientY - r.top) / r.height * SIZE };
@@ -708,7 +727,15 @@
       pcanvas.setPointerCapture(e.pointerId);
       if (pointers.size === 2) { startPinch(); return; }
       if (mode === "upload") { dragging = true; last = p; return; }
-      // cat mode: a corner handle of the selected accessory → resize
+      // cat mode: a rotate handle of the selected accessory → rotate
+      if (selectedAcc && isActive(selectedAcc) && rotHandleHit(selectedAcc, p)) {
+        const g = accGeom(selectedAcc);
+        rotating = true;
+        rotStart = { ang0: Math.atan2(p.y - g.cy, p.x - g.cx) * 180 / Math.PI, baseRot: tf(selectedAcc).rot || 0 };
+        pcanvas.style.cursor = "grabbing";
+        return;
+      }
+      // a corner handle of the selected accessory → resize
       if (selectedAcc && isActive(selectedAcc) && cornerHit(selectedAcc, p)) {
         const g = accGeom(selectedAcc);
         resizing = true;
@@ -733,6 +760,14 @@
       if (pointers.has(e.pointerId)) pointers.set(e.pointerId, canvasPos(e));
       if (pinch && pointers.size >= 2) { movePinch(); return; }
       if (mode === "cat") {
+        if (rotating && selectedAcc) {
+          const p = canvasPos(e), g = accGeom(selectedAcc), t = tf(selectedAcc);
+          const ang = Math.atan2(p.y - g.cy, p.x - g.cx) * 180 / Math.PI;
+          t.rot = norm180(rotStart.baseRot + (ang - rotStart.ang0));
+          accRotSlider.value = Math.round(t.rot);
+          renderCat();
+          return;
+        }
         if (resizing && selectedAcc) {
           const p = canvasPos(e), g = accGeom(selectedAcc);
           const d = Math.hypot(p.x - g.cx, p.y - g.cy), t = tf(selectedAcc);
@@ -746,8 +781,10 @@
           return;
         }
         if (!dragging) {
-          const hp = canvasPos(e);
-          pcanvas.style.cursor = (selectedAcc && isActive(selectedAcc) && cornerHit(selectedAcc, hp)) ? "nwse-resize" : (accAt(hp) ? "grab" : "move");
+          const hp = canvasPos(e), sel = selectedAcc && isActive(selectedAcc);
+          pcanvas.style.cursor = (sel && rotHandleHit(selectedAcc, hp)) ? "grab"
+            : (sel && cornerHit(selectedAcc, hp)) ? "nwse-resize"
+            : (accAt(hp) ? "grab" : "move");
           return;
         }
         const p = canvasPos(e), t = tf(selectedAcc);
@@ -761,7 +798,7 @@
     function endPointer(e) {
       pointers.delete(e.pointerId);
       if (pointers.size < 2) pinch = null;
-      if (pointers.size === 0) { dragging = false; draggingCat = false; resizing = false; resizeStart = null; if (mode === "cat") pcanvas.style.cursor = "default"; }
+      if (pointers.size === 0) { dragging = false; draggingCat = false; resizing = false; resizeStart = null; rotating = false; rotStart = null; if (mode === "cat") pcanvas.style.cursor = "default"; }
     }
     pcanvas.addEventListener("pointerup", endPointer);
     pcanvas.addEventListener("pointercancel", endPointer);
