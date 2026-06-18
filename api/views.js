@@ -23,7 +23,7 @@ async function redis(command) {
   const res = await fetch(URL + "/" + command.map(encodeURIComponent).join("/"), {
     headers: { Authorization: "Bearer " + TOKEN },
   });
-  if (!res.ok) { let b = ""; try { b = (await res.text()).slice(0, 160); } catch (e) {} throw new Error("redis " + res.status + " " + b); }
+  if (!res.ok) throw new Error("redis " + res.status);
   return (await res.json()).result;
 }
 
@@ -35,17 +35,7 @@ module.exports = async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
   if (req.method === "OPTIONS") { res.status(204).end(); return; }
 
-  if (!URL || !TOKEN) { res.status(200).json({ configured: false, hasUrl: !!URL, hasToken: !!TOKEN }); return; }
-
-  // Temporary diagnostic: /api/views?diag=1 reveals the Redis error + URL shape
-  // (host only, never the token) so we can pinpoint a bad credential / dead DB.
-  if (req.query && req.query.diag) {
-    let host = ""; try { host = new (require("url").URL)(URL).host; } catch (e) { host = "(unparseable URL)"; }
-    let ping = "ok", val = null;
-    try { val = await redis(["INCR", "views:diag"]); } catch (e) { ping = String(e && e.message || e); }
-    res.status(200).json({ host: host, urlIsHttps: /^https:\/\//.test(URL), tokenLen: String(TOKEN).length, ping: ping, val: val });
-    return;
-  }
+  if (!URL || !TOKEN) { res.status(200).json({ configured: false }); return; }
 
   try {
     const page = sanitize((req.query && req.query.page)) || "home";
