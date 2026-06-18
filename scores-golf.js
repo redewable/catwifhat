@@ -127,7 +127,8 @@
       '<span><i class="sc__dot" style="background:var(--cream-d)"></i>Par</span>' +
       '<span><i class="sc__dot" style="background:#ffdfdb"></i>Bogey</span>' +
       '<span><i class="sc__dot" style="background:#d9e4ff"></i>Dbl+</span></div>';
-    return '<div class="sc" data-card-id="' + esc(String(c.id)) + '">' + tabs + nine(1, 9, "OUT", "Front nine") + nine(10, 18, "IN", "Back nine") + legend + "</div>";
+    const share = '<button class="sc__share" type="button" data-share-id="' + esc(String(c.id)) + '" data-share-round="' + sel + '">📸 Share this scorecard</button>';
+    return '<div class="sc" data-card-id="' + esc(String(c.id)) + '">' + tabs + nine(1, 9, "OUT", "Front nine") + nine(10, 18, "IN", "Back nine") + legend + share + "</div>";
   }
 
   function rowHtml(c, posLabel, round, open) {
@@ -156,6 +157,8 @@
   }
 
   rowsEl.addEventListener("click", function (e) {
+    const sh = e.target.closest(".sc__share");
+    if (sh) { e.stopPropagation(); shareScorecard(sh.getAttribute("data-share-id"), parseInt(sh.getAttribute("data-share-round"), 10)); return; }
     const rbtn = e.target.closest(".sc__rbtn");
     if (rbtn) {
       const card = rbtn.closest(".sc"); if (!card) return;
@@ -168,6 +171,69 @@
     if (expanded.hasOwnProperty(id)) delete expanded[id]; else expanded[id] = null;
     paint();
   });
+
+  /* ---- shareable scorecard image (canvas → X / download) ---- */
+  const HOLE_COLORS = {
+    "hole--eagle": { bg: "#ffe6b0", fg: "#b8731b" }, "hole--birdie": { bg: "#d3f1e0", fg: "#1a8a5a" },
+    "hole--par": { bg: "#ffffff", fg: "#1a1814" }, "hole--bogey": { bg: "#ffdfdb", fg: "#d8483c" },
+    "hole--dbl": { bg: "#d9e4ff", fg: "#2e5fd8" }, "hole--empty": { bg: "#efe7dc", fg: "rgba(26,24,20,0.35)" }
+  };
+  function dataUrlToFile(u, name) { const a = u.split(","), m = (a[0].match(/:(.*?);/) || [])[1] || "image/png", b = atob(a[1]); let n = b.length; const u8 = new Uint8Array(n); while (n--) u8[n] = b.charCodeAt(n); return new File([u8], name, { type: m }); }
+  function rr(ctx, x, y, w, h, r) { ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r); ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath(); }
+  function findRow(id) { for (let i = 0; i < state.rows.length; i++) if (String(state.rows[i].c.id) === String(id)) return state.rows[i]; return null; }
+
+  function shareScorecard(id, roundIdx) {
+    const r = findRow(id); if (!r) return; const c = r.c, a = c.athlete || {};
+    const rounds = c.linescores || []; let sel = roundIdx;
+    if (sel == null || !((rounds[sel] || {}).linescores || []).length) { const p = playedRounds(c); sel = p.length ? p[p.length - 1].i : 0; }
+    const round = rounds[sel] || {}, byHole = {};
+    (round.linescores || []).forEach(function (h) { const rel = relNum((h.scoreType || {}).displayValue), s = parseInt(h.displayValue, 10); byHole[h.period] = { strokes: isNaN(s) ? null : s, rel: rel }; });
+
+    const W = 1200, H = 675, cv = document.createElement("canvas"); cv.width = W; cv.height = H; const ctx = cv.getContext("2d");
+    const g = ctx.createLinearGradient(0, 0, 0, H); g.addColorStop(0, "#efe7dc"); g.addColorStop(1, "#e2d6c9"); ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+    ctx.textAlign = "left"; ctx.fillStyle = "#1a1814"; ctx.font = "800 30px Unbounded,Arial"; ctx.fillText("catwifhat · Scorebox", 60, 70);
+    ctx.fillStyle = "rgba(26,24,20,0.5)"; ctx.font = "700 20px 'Hanken Grotesk',Arial"; ctx.fillText((course && course.name ? course.name.toUpperCase() + " · " : "") + (($("golf-title").textContent || "U.S. OPEN").toUpperCase()), 60, 100);
+
+    function drawCard(flagImg) {
+      // player line
+      let x = 60; const py = 165;
+      if (flagImg) { ctx.save(); rr(ctx, x, py - 34, 60, 40, 6); ctx.clip(); ctx.drawImage(flagImg, x, py - 34, 60, 40); ctx.restore(); x += 76; }
+      ctx.fillStyle = "#1a1814"; ctx.font = "800 46px Unbounded,Arial"; ctx.textAlign = "left"; ctx.fillText(a.displayName || "", x, py);
+      ctx.font = "800 26px 'Hanken Grotesk',Arial"; ctx.fillStyle = "rgba(26,24,20,0.6)"; ctx.fillText(r.posLabel + " · " + parDisp(c.score) + " total", x, py + 38);
+      // hole grid: 2 rows of 9
+      const gx = 60, gy = 250, cw = (W - 120 - 8 * 14) / 9, ch = 150, gap = 14;
+      function rowCells(start, ry, label) {
+        ctx.textAlign = "left"; ctx.fillStyle = "#1a1814"; ctx.font = "800 22px Unbounded,Arial"; ctx.fillText(label, gx, ry - 14);
+        for (let i = 0; i < 9; i++) {
+          const n = start + i, d = byHole[n];
+          const par = (course && course.holePar[n] != null) ? course.holePar[n] : null;
+          let cls = "hole--empty", sc = "–";
+          if (d && d.strokes != null) { sc = String(d.strokes); const rel = d.rel != null ? d.rel : (par != null ? d.strokes - par : null); cls = (rel == null ? "hole--empty" : rel <= -2 ? "hole--eagle" : rel === -1 ? "hole--birdie" : rel === 0 ? "hole--par" : rel === 1 ? "hole--bogey" : "hole--dbl"); }
+          const col = HOLE_COLORS[cls], cx = gx + i * (cw + gap);
+          ctx.fillStyle = "#ffffff"; rr(ctx, cx, ry, cw, ch, 12); ctx.fill();
+          ctx.fillStyle = "rgba(26,24,20,0.5)"; ctx.font = "700 17px 'Hanken Grotesk',Arial"; ctx.textAlign = "center";
+          ctx.fillText(n + (par != null ? " · P" + par : ""), cx + cw / 2, ry + 26);
+          ctx.fillStyle = col.bg; const cr = 30, ccx = cx + cw / 2, ccy = ry + 92;
+          ctx.beginPath(); ctx.arc(ccx, ccy, cr, 0, Math.PI * 2); ctx.fill();
+          ctx.fillStyle = col.fg; ctx.font = "800 34px Unbounded,Arial"; ctx.fillText(sc, ccx, ccy + 12);
+        }
+      }
+      rowCells(1, gy + 24, "Front nine");
+      rowCells(10, gy + 24 + ch + 60, "Back nine");
+      ctx.textAlign = "center"; ctx.fillStyle = "rgba(26,24,20,0.55)"; ctx.font = "700 24px 'Hanken Grotesk',Arial";
+      ctx.fillText("$WIF, but on $USDC · catwifusdc.com 🐱⛳", W / 2, H - 28);
+
+      let url; try { url = cv.toDataURL("image/png"); } catch (e) { if (window.__wifToast) window.__wifToast("Card not ready — try again"); return; }
+      const text = (a.displayName || "player") + " — " + r.posLabel + " (" + parDisp(c.score) + ") at the " + ($("golf-title").textContent || "U.S. Open") + " 🐱⛳ #catwifhat\ncatwifusdc.com";
+      const file = dataUrlToFile(url, "catwifhat-scorecard.png");
+      if (navigator.canShare && navigator.canShare({ files: [file] })) navigator.share({ files: [file], text: text }).then(function () { if (window.__wifToast) window.__wifToast("shared!"); }).catch(function () {});
+      else { const link = document.createElement("a"); link.href = url; link.download = "catwifhat-scorecard.png"; document.body.appendChild(link); link.click(); link.remove(); if (window.__wifToast) window.__wifToast("Scorecard saved — drop it on X!"); }
+    }
+
+    const flagUrl = (a.flag || {}).href || "";
+    if (flagUrl) { const fi = new Image(); fi.crossOrigin = "anonymous"; fi.referrerPolicy = "no-referrer"; fi.onload = function () { drawCard(fi); }; fi.onerror = function () { drawCard(null); }; fi.src = flagUrl; }
+    else drawCard(null);
+  }
 
   /* ---- "Call the winner" global poll (namespaced champ tally) ---- */
   function pollLget() { try { return JSON.parse(localStorage.getItem(LKEY)) || {}; } catch (e) { return {}; } }

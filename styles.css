@@ -1743,6 +1743,12 @@ a.sportcard--feature:hover .sportcard__cta { transform: translateY(-1px); box-sh
 .sc__legend span { display: inline-flex; align-items: center; gap: 0.3rem; }
 .sc__dot { width: 11px; height: 11px; border-radius: 50%; display: inline-block; }
 .sc__empty { padding: 0.8rem 0.2rem; opacity: 0.6; font-weight: 600; }
+.sc__share {
+  display: block; margin: 1rem auto 0.2rem; border: 2px solid var(--cream-d); background: var(--white);
+  color: var(--ink); font-family: var(--font-body); font-weight: 700; font-size: 0.82rem;
+  padding: 0.5rem 1.1rem; border-radius: 999px; cursor: pointer; transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+.sc__share:hover { background: var(--blue); border-color: var(--blue); color: #fff; }
 
 @media (max-width: 480px) {
   .lbrd__head, .lbrd__row { grid-template-columns: 2.2rem minmax(0, 1fr) 2.6rem 2.2rem 2.7rem; column-gap: 0.4rem; padding: 0.5rem 0.65rem; }

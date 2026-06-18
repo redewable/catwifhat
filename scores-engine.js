@@ -217,7 +217,33 @@
         castVote(sel.value);
         if (window.__wifToast) window.__wifToast("Champion locked 🏆 — vote counted");
       });
-      $("champ-share").addEventListener("click", function () { const t = $("champ-share").dataset.text || ""; const u = "https://twitter.com/intent/tweet?text=" + encodeURIComponent(t); if (navigator.share) navigator.share({ text: t }).catch(function () { window.open(u, "_blank", "noopener"); }); else window.open(u, "_blank", "noopener"); });
+      function shareText(v) { return $("champ-share").dataset.text || ("My #catwifhat World Cup champion: " + (nm[v] || v) + " 🏆🐱\ncatwifusdc.com"); }
+      function tweet(t) { const u = "https://twitter.com/intent/tweet?text=" + encodeURIComponent(t); window.open(u, "_blank", "noopener"); }
+      function buildChampCard(v) {
+        const W = 1080, H = 1080, cv = document.createElement("canvas"); cv.width = W; cv.height = H; const ctx = cv.getContext("2d");
+        const g = ctx.createLinearGradient(0, 0, 0, H); g.addColorStop(0, "#efe7dc"); g.addColorStop(1, "#e2d6c9"); ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+        ctx.textAlign = "center"; ctx.fillStyle = "#1a1814"; ctx.font = "800 40px Unbounded,Arial"; ctx.fillText("catwifhat · Scorebox", W / 2, 96);
+        ctx.fillStyle = "rgba(26,24,20,0.5)"; ctx.font = "700 26px 'Hanken Grotesk',Arial"; ctx.fillText("FIFA WORLD CUP 2026", W / 2, 138);
+        function finish(img) {
+          const cx = W / 2, cy = 470, r = 240;
+          ctx.save(); ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.closePath(); ctx.fillStyle = "#fffaf4"; ctx.fill(); ctx.clip();
+          if (img && img.complete && img.naturalWidth) { const sc = (2 * r) / img.naturalWidth; ctx.drawImage(img, cx - r, cy - r, img.naturalWidth * sc, img.naturalHeight * sc); }
+          else { ctx.fillStyle = "#e2d6c9"; ctx.fillRect(cx - r, cy - r, 2 * r, 2 * r); ctx.fillStyle = "#1a1814"; ctx.font = "800 90px Unbounded,Arial"; ctx.fillText(v, cx, cy + 30); }
+          ctx.restore();
+          ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.lineWidth = 12; ctx.strokeStyle = "#e08a3c"; ctx.stroke();
+          ctx.fillStyle = "#1a1814"; ctx.font = "800 30px 'Hanken Grotesk',Arial"; ctx.fillText("MY PICK TO LIFT THE CUP 🏆", W / 2, 790);
+          ctx.fillStyle = "#1a1814"; ctx.font = "900 76px Unbounded,Arial"; ctx.fillText((nm[v] || v), W / 2, 868);
+          ctx.fillStyle = "rgba(26,24,20,0.55)"; ctx.font = "700 30px 'Hanken Grotesk',Arial"; ctx.fillText("$WIF, but on $USDC · catwifusdc.com 🐱", W / 2, 990);
+          let url; try { url = cv.toDataURL("image/png"); } catch (e) { tweet(shareText(v)); return; }
+          const a = url.split(","), b = atob(a[1]); let n = b.length; const u8 = new Uint8Array(n); while (n--) u8[n] = b.charCodeAt(n);
+          const file = new File([u8], "catwifhat-champion.png", { type: "image/png" });
+          if (navigator.canShare && navigator.canShare({ files: [file] })) navigator.share({ files: [file], text: shareText(v) }).then(function () { if (window.__wifToast) window.__wifToast("shared!"); }).catch(function () {});
+          else { const link = document.createElement("a"); link.href = url; link.download = "catwifhat-champion.png"; document.body.appendChild(link); link.click(); link.remove(); if (window.__wifToast) window.__wifToast("Card saved — drop it on X!"); }
+        }
+        const src = CATS[v] ? CATS[v] + ".webp" : "";
+        if (src) { const im = new Image(); im.onload = function () { finish(im); }; im.onerror = function () { finish(null); }; im.src = src; } else finish(null);
+      }
+      $("champ-share").addEventListener("click", function () { const v = sel.value || voted(); if (!v) return; buildChampCard(v); });
     })();
 
     /* init: open tab from hash, kick off fetches */
