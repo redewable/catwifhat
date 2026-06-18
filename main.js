@@ -369,6 +369,21 @@
       const lx = dx * c - dy * s, ly = dx * s + dy * c;
       return Math.abs(lx) <= g.w / 2 && Math.abs(ly) <= g.h / 2;
     }
+    // corner resize handles
+    const HANDLE_R = 28;    // drawn radius (canvas units; canvas is 1080 wide)
+    const HANDLE_HIT = 52;  // grab radius (forgiving for touch)
+    function accCornerPts(g) {
+      const hw = g.w / 2, hh = g.h / 2, c = Math.cos(g.rot), s = Math.sin(g.rot);
+      return [[-hw, -hh], [hw, -hh], [hw, hh], [-hw, hh]].map(function (q) {
+        return { x: g.cx + q[0] * c - q[1] * s, y: g.cy + q[0] * s + q[1] * c };
+      });
+    }
+    function cornerHit(name, p) {
+      const g = accGeom(name); if (!g) return false;
+      const cs = accCornerPts(g);
+      for (let i = 0; i < 4; i++) { if (Math.hypot(p.x - cs[i].x, p.y - cs[i].y) <= HANDLE_HIT) return true; }
+      return false;
+    }
     function renderCat() {
       cctx.clearRect(0, 0, SIZE, SIZE);
       const bgSrc = BGS[bgKey] && BGS[bgKey].src;
@@ -390,6 +405,14 @@
           cctx.lineWidth = 3;
           cctx.setLineDash([10, 8]);
           cctx.strokeRect(-g.w / 2, -g.h / 2, g.w, g.h);
+          // draggable corner handles
+          cctx.setLineDash([]);
+          const hw = g.w / 2, hh = g.h / 2;
+          [[-hw, -hh], [hw, -hh], [hw, hh], [-hw, hh]].forEach(function (q) {
+            cctx.beginPath(); cctx.arc(q[0], q[1], HANDLE_R, 0, Math.PI * 2);
+            cctx.fillStyle = "#fff"; cctx.fill();
+            cctx.lineWidth = 4; cctx.strokeStyle = "rgba(46,95,216,0.95)"; cctx.stroke();
+          });
           cctx.restore();
         }
       }
@@ -620,7 +643,7 @@
     // ---- pointer input: drag (1 finger) + pinch zoom/rotate (2 fingers) ----
     // In cat mode a finger on an accessory drags it; a finger on empty canvas drags the cat.
     const pointers = new Map();
-    let dragging = false, draggingCat = false, last = null, pinch = null;
+    let dragging = false, draggingCat = false, last = null, pinch = null, resizing = false, resizeStart = null;
     function canvasPos(e) {
       const r = pcanvas.getBoundingClientRect();
       return { x: (e.clientX - r.left) / r.width * SIZE, y: (e.clientY - r.top) / r.height * SIZE };
@@ -684,25 +707,48 @@
       pcanvas.setPointerCapture(e.pointerId);
       if (pointers.size === 2) { startPinch(); return; }
       if (mode === "upload") { dragging = true; last = p; return; }
-      // cat mode: grab an accessory, or drag the cat itself
+      // cat mode: a corner handle of the selected accessory → resize
+      if (selectedAcc && isActive(selectedAcc) && cornerHit(selectedAcc, p)) {
+        const g = accGeom(selectedAcc);
+        resizing = true;
+        resizeStart = { d0: Math.hypot(p.x - g.cx, p.y - g.cy) || 1, baseW: tf(selectedAcc).w };
+        pcanvas.style.cursor = "nwse-resize";
+        return;
+      }
+      // grab an accessory, or drag the cat itself
       const hit = accAt(p);
       if (hit) {
         selectedAcc = hit; dragging = true; last = p;
         pcanvas.style.cursor = "grabbing";
         syncAccCtrls(); renderCat();
-      } else if (catReady) {
-        draggingCat = true; last = p; pcanvas.style.cursor = "grabbing";
+      } else {
+        // clicked empty space → deselect (clears the edit box) and drag the cat
+        if (selectedAcc) { selectedAcc = null; syncAccCtrls(); }
+        if (catReady) { draggingCat = true; last = p; pcanvas.style.cursor = "grabbing"; }
+        renderCat();
       }
     });
     pcanvas.addEventListener("pointermove", function (e) {
       if (pointers.has(e.pointerId)) pointers.set(e.pointerId, canvasPos(e));
       if (pinch && pointers.size >= 2) { movePinch(); return; }
       if (mode === "cat") {
+        if (resizing && selectedAcc) {
+          const p = canvasPos(e), g = accGeom(selectedAcc);
+          const d = Math.hypot(p.x - g.cx, p.y - g.cy), t = tf(selectedAcc);
+          t.w = Math.min(1.4, Math.max(0.15, resizeStart.baseW * (d / resizeStart.d0)));
+          accSizeSlider.value = Math.round(t.w * 100);
+          renderCat();
+          return;
+        }
         if (draggingCat) {
           const p = canvasPos(e); catX += p.x - last.x; catY += p.y - last.y; last = p; rebuildCat();
           return;
         }
-        if (!dragging) { pcanvas.style.cursor = accAt(canvasPos(e)) ? "grab" : "move"; return; }
+        if (!dragging) {
+          const hp = canvasPos(e);
+          pcanvas.style.cursor = (selectedAcc && isActive(selectedAcc) && cornerHit(selectedAcc, hp)) ? "nwse-resize" : (accAt(hp) ? "grab" : "move");
+          return;
+        }
         const p = canvasPos(e), t = tf(selectedAcc);
         t.cx += (p.x - last.x) / SIZE; t.cy += (p.y - last.y) / SIZE; last = p;
         renderCat();
@@ -714,7 +760,7 @@
     function endPointer(e) {
       pointers.delete(e.pointerId);
       if (pointers.size < 2) pinch = null;
-      if (pointers.size === 0) { dragging = false; draggingCat = false; if (mode === "cat") pcanvas.style.cursor = "default"; }
+      if (pointers.size === 0) { dragging = false; draggingCat = false; resizing = false; resizeStart = null; if (mode === "cat") pcanvas.style.cursor = "default"; }
     }
     pcanvas.addEventListener("pointerup", endPointer);
     pcanvas.addEventListener("pointercancel", endPointer);
@@ -764,13 +810,15 @@
       return url;
     }
     function canExport() { return mode === "cat" ? catReady : !!bg; }
+    // Mobile gets the native share sheet (iOS "Save Image" → Photos); desktop
+    // downloads the PNG straight to disk — which is what desktop users expect.
+    const isMobile = (window.matchMedia && window.matchMedia("(pointer: coarse)").matches) || /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent || "");
     dlBtn.addEventListener("click", function () {
       if (dlBtn.getAttribute("aria-disabled") === "true") return;
       // Build the PNG synchronously so the share sheet still counts as a user tap (iOS).
       const dataUrl = exportPng();
       const file = dataUrlToFile(dataUrl, "my-catwifhat-pfp.png");
-      // Native share sheet → iOS "Save Image" sends it to Photos; Android "Save to gallery".
-      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      if (isMobile && navigator.canShare && navigator.canShare({ files: [file] })) {
         navigator.share({ files: [file], title: "catwifhat", text: "my catwifhat 🐱🧢" })
           .then(function () { showToast("saved!"); })
           .catch(function (err) {
@@ -778,8 +826,8 @@
             downloadDataUrl(dataUrl);                      // fallback if share fails
           });
       } else {
-        downloadDataUrl(dataUrl);                          // desktop / unsupported
-        showToast("PFP saved!");
+        downloadDataUrl(dataUrl);                          // desktop → direct download
+        showToast("PFP downloaded!");
       }
     });
 
