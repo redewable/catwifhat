@@ -14,6 +14,8 @@ edge geo (country / region / city, no IPs stored).
 ## One-time setup
 
 1. **Supabase** → SQL editor → run [`supabase-analytics.sql`](supabase-analytics.sql).
+   (It's idempotent — safe to **re-run** any time the dashboard adds new
+   panels, e.g. live-online, engagement, activity feed and top-memes.)
 2. **Vercel** → Project → Settings → Environment Variables, add:
    - `SUPABASE_URL` — e.g. `https://xxxx.supabase.co`
    - `SUPABASE_SERVICE_ROLE_KEY` — the **service_role** secret (Project → Settings → API). Keep private; it's only used server-side in `/api/track` and `/api/stats`.

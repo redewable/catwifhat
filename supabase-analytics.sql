@@ -80,3 +80,49 @@ begin
   $f$, p_dim) into result using p_since, p_limit;
   return result;
 end; $$;
+
+-- Who's on the site right now (distinct sessions active in the last p_minutes).
+create or replace function public.stats_live(p_minutes int default 5)
+returns json language sql stable as $$
+  select json_build_object(
+    'online', count(distinct session_id),
+    'events', count(*)
+  )
+  from public.events
+  where created_at >= now() - (p_minutes || ' minutes')::interval;
+$$;
+
+-- Engagement: avg time-on-page, avg scroll depth, bounce rate (1-pageview sessions).
+create or replace function public.stats_engagement(p_since timestamptz)
+returns json language sql stable as $$
+  select json_build_object(
+    'avg_seconds', coalesce((select round(avg((meta->>'seconds')::numeric))
+                             from public.events where type='pageleave' and created_at>=p_since and meta ? 'seconds'),0),
+    'avg_depth',   coalesce((select round(avg((meta->>'depth')::numeric))
+                             from public.events where type='pageleave' and created_at>=p_since and meta ? 'depth'),0),
+    'bounce',      coalesce((select round(100.0*count(*) filter (where pv<=1)/nullif(count(*),0))
+                             from (select session_id, count(*) filter (where type='pageview') pv
+                                   from public.events where created_at>=p_since group by session_id) s),0)
+  );
+$$;
+
+-- Recent events for the live feed.
+create or replace function public.stats_recent(p_limit int default 40)
+returns json language sql stable as $$
+  select coalesce(json_agg(row_to_json(t)), '[]'::json) from (
+    select type, page, country, device, created_at, meta
+    from public.events order by created_at desc limit p_limit
+  ) t;
+$$;
+
+-- Top values of a meta key for a given event type (e.g. memes by src). Params are
+-- bound, not interpolated, so there's no injection surface.
+create or replace function public.stats_top_meta(p_type text, p_key text, p_since timestamptz, p_limit int default 8)
+returns json language sql stable as $$
+  select coalesce(json_agg(row_to_json(t)), '[]'::json) from (
+    select meta->>p_key as label, count(*) as count
+    from public.events
+    where type = p_type and created_at >= p_since and meta ? p_key and meta->>p_key <> ''
+    group by 1 order by 2 desc limit p_limit
+  ) t;
+$$;

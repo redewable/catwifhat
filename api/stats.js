@@ -38,7 +38,7 @@ module.exports = async function handler(req, res) {
   }
 
   try {
-    const [overview, series, pages, referrers, countries, sources, devices, campaigns] = await Promise.all([
+    const [overview, series, pages, referrers, countries, sources, devices, campaigns, live, engagement, recent, memes] = await Promise.all([
       rpc("stats_overview", { p_since: since }),
       rpc("stats_timeseries", { p_since: since, p_bucket: bucket }),
       rpc("stats_top", { p_dim: "page", p_since: since }),
@@ -46,9 +46,13 @@ module.exports = async function handler(req, res) {
       rpc("stats_top", { p_dim: "country", p_since: since }),
       rpc("stats_top", { p_dim: "utm_source", p_since: since }),
       rpc("stats_top", { p_dim: "device", p_since: since }),
-      rpc("stats_top", { p_dim: "utm_campaign", p_since: since })
+      rpc("stats_top", { p_dim: "utm_campaign", p_since: since }),
+      rpc("stats_live", { p_minutes: 5 }),
+      rpc("stats_engagement", { p_since: since }),
+      rpc("stats_recent", { p_limit: 40 }),
+      rpc("stats_top_meta", { p_type: "meme_open", p_key: "src", p_since: since, p_limit: 8 })
     ]);
-    res.status(200).json({ configured: true, days: days, bucket: bucket, overview: overview, series: series, pages: pages, referrers: referrers, countries: countries, sources: sources, devices: devices, campaigns: campaigns });
+    res.status(200).json({ configured: true, days: days, bucket: bucket, overview: overview, series: series, pages: pages, referrers: referrers, countries: countries, sources: sources, devices: devices, campaigns: campaigns, live: live, engagement: engagement, recent: recent, memes: memes });
   } catch (e) {
     res.status(200).json({ configured: true, error: "unavailable" });
   }
