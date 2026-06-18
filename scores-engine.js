@@ -97,7 +97,7 @@
       panels.forEach(function (p) { p.hidden = p.dataset.panel !== name; });
       try { history.replaceState(null, "", "#" + name); } catch (e) {}
     }
-    tabs.forEach(function (t) { t.addEventListener("click", function () { showTab(t.dataset.tab); }); });
+    tabs.forEach(function (t) { t.addEventListener("click", function () { showTab(t.dataset.tab); if (t.dataset.tab === "bracket") loadBracket(); }); });
 
     /* standings + rankings (one fetch powers both) */
     function groupTable(child) {
@@ -149,6 +149,58 @@
         renderStandings(); renderRankings();
       }).catch(function () { renderStandings(); });
       clearTimeout(groupsTimer); groupsTimer = setTimeout(fetchGroups, 300000);
+    }
+
+    /* knockout bracket — auto-fills from the feed (seeds show as "2A" until teams qualify) */
+    let bracketLoaded = false;
+    const KO_ROUNDS = [
+      { slug: "round-of-32", label: "Round of 32" },
+      { slug: "round-of-16", label: "Round of 16" },
+      { slug: "quarterfinals", label: "Quarters" },
+      { slug: "semifinals", label: "Semis" },
+      { slug: "final", label: "Final" }
+    ];
+    function bktTeam(c, win, showScore) {
+      const t = c.team || {}, ab = t.abbreviation || "", b = badgeFromTeam(t);
+      const isCat = !!TEAM_CATS[ab];
+      const badge = isCat ? '<img class="bkt__badge" src="' + esc(TEAM_CATS[ab] + ".webp") + '" alt="" loading="lazy"/>'
+        : (b.src ? '<img class="bkt__badge bkt__badge--flag" src="' + esc(b.src) + '" alt="" loading="lazy"/>' : '<span class="bkt__badge bkt__badge--tbd"></span>');
+      const sc = (showScore && c.score != null && c.score !== "") ? c.score : "";
+      return '<span class="bkt__team' + (win ? " is-win" : "") + '">' + badge + '<span class="bkt__ab">' + esc(ab || "TBD") + '</span><span class="bkt__sc">' + esc(sc) + "</span></span>";
+    }
+    function bktMatch(ev) {
+      const s = sides(ev), st = s.status.type || {}, state = st.state;
+      const live = state === "in" || state === "post";
+      const hs = parseFloat(s.home.score), as = parseFloat(s.away.score);
+      const hw = state === "post" && hs > as, aw = state === "post" && as > hs;
+      return '<a class="bkt__match" href="' + gameHref(ev.id) + '&from=bracket">' + bktTeam(s.home, hw, live) + bktTeam(s.away, aw, live) + "</a>";
+    }
+    function renderBracket(evs) {
+      const wrap = $("bracket-wrap"); if (!wrap) return;
+      const bySlug = {}; evs.forEach(function (e) { const sl = (e.season || {}).slug; (bySlug[sl] = bySlug[sl] || []).push(e); });
+      const cols = KO_ROUNDS.map(function (r) {
+        const list = (bySlug[r.slug] || []).slice().sort(function (a, b) { return new Date(a.date) - new Date(b.date); });
+        if (!list.length) return "";
+        return '<div class="bkt__col"><div class="bkt__colh">' + esc(r.label) + "</div><div class=\"bkt__matches\">" + list.map(bktMatch).join("") + "</div></div>";
+      }).join("");
+      // champion slot
+      const fin = (bySlug["final"] || [])[0];
+      let champ = '<span class="bkt__champname">TBD</span>';
+      if (fin) { const fs = sides(fin), fst = (fs.status.type || {}).state; if (fst === "post") { const hs = parseFloat(fs.home.score), as = parseFloat(fs.away.score); const w = hs > as ? fs.home : fs.away; champ = bktTeam(w, true); } }
+      const cup = '<div class="bkt__col bkt__col--cup"><div class="bkt__colh">Champion</div><div class="bkt__cup"><img class="emo emo--lg" src="acc-trophy.webp" alt="" />' + champ + "</div></div>";
+      const third = (bySlug["3rd-place-match"] || [])[0];
+      let thirdHtml = "";
+      if (third) thirdHtml = '<div class="bkt__third"><span class="bkt__thirdlabel">3rd-place match</span>' + bktMatch(third) + "</div>";
+      wrap.classList.add("bracket");
+      wrap.innerHTML = '<div class="bracket__scroll">' + cols + cup + "</div>" + thirdHtml +
+        '<p class="scores__note">Seeds show as group slots (e.g. <strong>2A</strong> = Group A runner-up) and fill in with cat badges as teams qualify. Tap any matchup for full detail.</p>';
+    }
+    function loadBracket() {
+      if (bracketLoaded) return; bracketLoaded = true;
+      fetch(BASE + "/scoreboard?dates=20260628-20260731", { cache: "no-store" })
+        .then(function (r) { return r.ok ? r.json() : null; })
+        .then(function (d) { const evs = (d && d.events) || []; if (evs.length) renderBracket(evs); else bracketLoaded = false; })
+        .catch(function () { bracketLoaded = false; });
     }
 
     /* today + calendar grids — games carry context so the game page can come back here */
@@ -248,7 +300,8 @@
 
     /* init: open tab from hash, kick off fetches */
     const start = (location.hash || "").replace("#", "");
-    showTab(["standings", "rankings", "bracket", "today", "calendar", "callit"].indexOf(start) > -1 ? start : "today");
+    const startTab = ["standings", "rankings", "bracket", "today", "calendar", "callit"].indexOf(start) > -1 ? start : "today";
+    showTab(startTab); if (startTab === "bracket") loadBracket();
     fetchGroups(); loadToday(); loadCalendar();
     document.addEventListener("visibilitychange", function () { if (document.hidden) { clearTimeout(groupsTimer); clearTimeout(todayTimer); } else { fetchGroups(); loadToday(); } });
     return;

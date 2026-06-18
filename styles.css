@@ -1656,6 +1656,33 @@ a.sportcard--feature:hover .sportcard__cta { transform: translateY(-1px); box-sh
 .bracket-ph__inner h3 { font-family: var(--font-display); font-weight: 800; font-size: clamp(1.2rem, 4vw, 1.6rem); margin-bottom: 0.7rem; }
 .bracket-ph__inner p { opacity: 0.72; max-width: 52ch; margin: 0 auto; line-height: 1.5; }
 
+/* live knockout bracket */
+.bracket__scroll { display: flex; gap: 1rem; overflow-x: auto; padding: 0.3rem 0.2rem 1rem; -webkit-overflow-scrolling: touch; }
+.bkt__col { flex: none; width: 168px; display: flex; flex-direction: column; }
+.bkt__colh { font-family: var(--font-display); font-weight: 800; font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.03em; opacity: 0.6; margin-bottom: 0.7rem; text-align: center; }
+.bkt__matches { display: flex; flex-direction: column; justify-content: space-around; gap: 0.7rem; flex: 1; }
+.bkt__match {
+  display: flex; flex-direction: column; gap: 2px; background: var(--white); border: 2px solid transparent;
+  border-radius: 12px; box-shadow: var(--shadow); padding: 0.4rem 0.55rem; color: var(--ink);
+  transition: transform 0.12s ease, border-color 0.12s ease;
+}
+.bkt__match:hover { transform: translateY(-2px); border-color: var(--ginger); }
+.bkt__team { display: flex; align-items: center; gap: 0.45rem; min-width: 0; }
+.bkt__team.is-win { font-weight: 800; }
+.bkt__team.is-win .bkt__ab { color: var(--blue); }
+.bkt__badge { width: 24px; height: 24px; border-radius: 50%; object-fit: cover; object-position: center top; background: var(--cream); flex: none; }
+.bkt__badge--flag { object-fit: contain; padding: 2px; background: var(--white); }
+.bkt__badge--tbd { background: var(--cream-d); }
+.bkt__ab { font-family: var(--font-display); font-weight: 700; font-size: 0.84rem; flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.bkt__sc { font-family: var(--font-display); font-weight: 800; font-size: 0.9rem; opacity: 0.85; min-width: 1ch; text-align: right; }
+.bkt__col--cup { justify-content: flex-start; }
+.bkt__cup { display: flex; flex-direction: column; align-items: center; gap: 0.5rem; background: linear-gradient(180deg, #fff6e6, var(--white)); border: 2px solid var(--ginger); border-radius: 14px; box-shadow: var(--shadow); padding: 1rem 0.6rem; margin-top: auto; margin-bottom: auto; }
+.bkt__cup .bkt__team { flex-direction: column; gap: 0.3rem; text-align: center; }
+.bkt__champname { font-family: var(--font-display); font-weight: 800; font-size: 1rem; opacity: 0.5; }
+.bkt__third { margin-top: 1rem; display: flex; align-items: center; gap: 0.8rem; flex-wrap: wrap; }
+.bkt__thirdlabel { font-family: var(--font-display); font-weight: 800; font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.03em; opacity: 0.6; }
+.bkt__third .bkt__match { width: 200px; }
+
 /* yarn soccer-ball icon (replaces the line-art ball) */
 .ic-ball { height: 1.3em; width: 1.3em; aspect-ratio: 1 / 1; object-fit: contain; flex: none; vertical-align: -0.28em; }
 .play__icon .ic-ball { height: 1.5em; width: 1.5em; vertical-align: -0.42em; }
