@@ -20,7 +20,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@600;700;800;900&family=Hanken+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css?v=25" />
+  <link rel="stylesheet" href="styles.css?v=26" />
 </head>
 <body>
 
@@ -30,6 +30,7 @@
     <symbol id="ic-basketball" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9.3"/><path d="M12 2.7v18.6M2.7 12h18.6M5.4 5.4c3.2 3.2 3.2 10 0 13.2M18.6 5.4c-3.2 3.2-3.2 10 0 13.2"/></g></symbol>
     <symbol id="ic-football" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4.5 19.5C2.5 13 5 5 12 4.5c7-.5 9.5 8 7.5 14.5-6.5 2-12.5 2-15 0z"/><path d="M9 12h6M12 10v4"/></g></symbol>
     <symbol id="ic-baseball" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9.3"/><path d="M5.8 5c2.2 3.8 2.2 10.2 0 14M18.2 5c-2.2 3.8-2.2 10.2 0 14"/></g></symbol>
+    <symbol id="ic-golf" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M10 21V4l7 3.2-7 3.2"/><path d="M10 21c-2.4 0-4.5.5-4.5 1.2"/><circle cx="17" cy="20" r="1.3" fill="currentColor" stroke="none"/></g></symbol>
   </svg>
 
   <header class="nav" id="top">
@@ -56,14 +57,26 @@
       <p class="scores__sub reveal">Sports are better with cats. <img class="emo" src="icon-cat.webp" alt="cat" /> Live, auto-updating scores with cat-badge teams. Pick a sport — more dropping soon.</p>
 
       <div class="sporthub reveal">
-        <!-- FIFA — live -->
-        <a class="sportcard sportcard--live" href="scores-fifa.html">
-          <span class="sportcard__media" style="background-image:url('fifa-world-cat.webp')"></span>
+        <!-- FIFA — live — featured -->
+        <a class="sportcard sportcard--live sportcard--feature" href="scores-fifa.html">
+          <span class="sportcard__media sportcard__media--feature" style="background-image:url('fifa-world-cat.webp')">
+            <span class="sportcard__live"><span class="livedot"></span> Live now</span>
+          </span>
+          <span class="sportcard__body">
+            <span class="sportcard__kicker">FIFA · 48 nations · every match</span>
+            <span class="sportcard__title sportcard__title--feature"><img class="sportcard__ball" src="icon-ball.webp?v=3" alt="" /><span>World Cup 2026</span></span>
+            <span class="sportcard__desc">Live scores &amp; clock, team-by-team key plays, standings, lineups, and who-you-got polls — all in cats.</span>
+            <span class="sportcard__cta">Open the Scorebox →</span>
+          </span>
+        </a>
+
+        <!-- PGA Tour — live -->
+        <a class="sportcard sportcard--live" href="scores-golf.html">
           <span class="sportcard__body">
             <span class="sportcard__badge">● Live now</span>
-            <span class="sportcard__title"><img class="ic-ball" src="icon-ball.webp?v=3" alt="" /> FIFA World Cup 2026</span>
-            <span class="sportcard__desc">Every match, live — scores, clock, team-by-team key plays &amp; stats.</span>
-            <span class="sportcard__go">Open Scorebox →</span>
+            <span class="sportcard__title"><svg class="ic" aria-hidden="true"><use href="#ic-golf"/></svg> PGA Tour — U.S. Open</span>
+            <span class="sportcard__desc">The major's live leaderboard — every player, every round, auto-updating.</span>
+            <span class="sportcard__go">Open leaderboard →</span>
           </span>
         </a>
 

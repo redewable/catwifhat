@@ -18,7 +18,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@600;700;800;900&family=Hanken+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css?v=25" />
+  <link rel="stylesheet" href="styles.css?v=26" />
 </head>
 <body>
 
@@ -100,6 +100,11 @@
           <button class="btn btn--blue champ__share" id="champ-share" type="button" hidden>Share <img class="emo" src="acc-trophy.webp" alt="" /></button>
         </div>
         <p class="champ__saved" id="champ-saved" hidden></p>
+
+        <div class="champ__results" id="champ-results" hidden>
+          <div class="champ__resultshead">Who the litter's backing <span class="champ__total" id="champ-total"></span></div>
+          <ol class="champ__bars" id="champ-bars"></ol>
+        </div>
       </div>
     </div>
   </section>
@@ -125,6 +130,6 @@
     };
   </script>
   <script src="main.js?v=17"></script>
-  <script src="scores-engine.js?v=15"></script>
+  <script src="scores-engine.js?v=16"></script>
 </body>
 </html>

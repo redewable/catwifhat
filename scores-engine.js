@@ -29,6 +29,9 @@
   function fmtTime(d) { try { return d.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }); } catch (e) { return ""; } }
   function tzAbbr(d) { try { const p = new Intl.DateTimeFormat([], { timeZoneName: "short" }).formatToParts(d).filter(function (x) { return x.type === "timeZoneName"; })[0]; return p ? p.value : ""; } catch (e) { return ""; } }
   function esc(s) { return String(s == null ? "" : s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
+  // Broadcast-style surname: "Michal Sadílek" → "Sadílek", keeping particles ("De Bruyne", "van Dijk").
+  const PARTICLES = { de: 1, van: 1, von: 1, der: 1, den: 1, da: 1, di: 1, dos: 1, das: 1, del: 1, la: 1, le: 1, du: 1, bin: 1, al: 1, el: 1, mac: 1, mc: 1, st: 1, ten: 1, ter: 1 };
+  function lastName(full) { full = String(full || "").trim(); if (!full) return ""; const p = full.split(/\s+/); if (p.length === 1) return full; let i = p.length - 1; if (i - 1 >= 1 && PARTICLES[p[i - 1].toLowerCase()]) i -= 1; return p.slice(i).join(" "); }
   function svgIc(id, extra) { return '<svg class="ic' + (extra ? " " + extra : "") + '" aria-hidden="true"><use href="#' + id + '"/></svg>'; }
   function iconFor(t) { t = (t || "").toLowerCase(); if (t.indexOf("goal") > -1) return '<img class="ic-ball" src="icon-ball.webp?v=3" alt="goal" />'; if (t.indexOf("yellow") > -1) return svgIc("ic-card", "ic--yellow"); if (t.indexOf("red") > -1) return svgIc("ic-card", "ic--red"); if (t.indexOf("var") > -1) return svgIc("ic-var"); return "•"; }
   function isKey(t) { return /goal|yellow|red|penalt|var/i.test(t || ""); }
@@ -166,10 +169,54 @@
       const sel = $("champ-select"); if (!sel) return;
       const KEY = "wif-champ";
       const WC = [["ALG","Algeria"],["ARG","Argentina"],["AUS","Australia"],["AUT","Austria"],["BEL","Belgium"],["BIH","Bosnia-Herzegovina"],["BRA","Brazil"],["CAN","Canada"],["CPV","Cape Verde"],["COL","Colombia"],["COD","Congo DR"],["CRO","Croatia"],["CUW","Curaçao"],["CZE","Czechia"],["ECU","Ecuador"],["EGY","Egypt"],["ENG","England"],["FRA","France"],["GER","Germany"],["GHA","Ghana"],["HAI","Haiti"],["IRN","Iran"],["IRQ","Iraq"],["CIV","Ivory Coast"],["JPN","Japan"],["JOR","Jordan"],["MEX","Mexico"],["MAR","Morocco"],["NED","Netherlands"],["NZL","New Zealand"],["NOR","Norway"],["PAN","Panama"],["PAR","Paraguay"],["POR","Portugal"],["QAT","Qatar"],["KSA","Saudi Arabia"],["SCO","Scotland"],["SEN","Senegal"],["RSA","South Africa"],["KOR","South Korea"],["ESP","Spain"],["SWE","Sweden"],["SUI","Switzerland"],["TUN","Tunisia"],["TUR","Türkiye"],["USA","United States"],["URU","Uruguay"],["UZB","Uzbekistan"]];
+      const CATS = (window.SCORE_CONFIG || {}).teamCats || {};
       const nm = {}; WC.forEach(function (t) { nm[t[0]] = t[1]; const o = document.createElement("option"); o.value = t[0]; o.textContent = t[1]; sel.appendChild(o); });
-      function show(v) { $("champ-saved").hidden = false; $("champ-saved").textContent = "Your pick: " + (nm[v] || v); const b = $("champ-share"); b.hidden = false; b.dataset.text = "My #catwifhat World Cup champion: " + (nm[v] || v) + " 🏆🐱\n$WIF, but on $USDC\ncatwifusdc.com"; }
-      try { const s = localStorage.getItem(KEY); if (s) { sel.value = s; show(s); } } catch (e) {}
-      sel.addEventListener("change", function () { if (!sel.value) return; try { localStorage.setItem(KEY, sel.value); } catch (e) {} show(sel.value); if (window.__wifToast) window.__wifToast("Champion locked 🏆"); });
+      const POLL_API = "/api/poll", LKEY = "wif-localchamp", VKEY = "wif-champ-voted";
+      function lget() { try { return JSON.parse(localStorage.getItem(LKEY)) || {}; } catch (e) { return {}; } }
+      function lset(o) { try { localStorage.setItem(LKEY, JSON.stringify(o)); } catch (e) {} }
+      function voted() { try { return localStorage.getItem(VKEY); } catch (e) { return null; } }
+
+      function renderResults(teams) {
+        const wrap = $("champ-results"), bars = $("champ-bars"), totEl = $("champ-total"); if (!wrap || !bars) return;
+        const arr = Object.keys(teams || {}).map(function (k) { return { ab: k, n: +teams[k] || 0 }; }).filter(function (x) { return x.n > 0; }).sort(function (a, b) { return b.n - a.n; });
+        if (!arr.length) { wrap.hidden = true; return; }
+        const total = arr.reduce(function (s, x) { return s + x.n; }, 0), max = arr[0].n, mine = voted();
+        bars.innerHTML = arr.slice(0, 10).map(function (x, i) {
+          const pct = Math.round(x.n / total * 100), w = Math.max(6, Math.round(x.n / max * 100));
+          const badge = CATS[x.ab] ? '<img class="champ__badge" src="' + esc(CATS[x.ab] + ".webp") + '" alt="" loading="lazy"/>' : '<span class="champ__badge champ__badge--ph">' + (i + 1) + "</span>";
+          return '<li class="champ__bar' + (x.ab === mine ? " is-mine" : "") + '">' + badge +
+            '<span class="champ__barname">' + esc(nm[x.ab] || x.ab) + (x.ab === mine ? ' <span class="champ__you">✓ you</span>' : "") + "</span>" +
+            '<span class="champ__track"><span class="champ__fill" style="width:' + w + '%"></span></span>' +
+            '<span class="champ__pct">' + pct + "%</span></li>";
+        }).join("");
+        totEl.textContent = total.toLocaleString() + (total === 1 ? " vote" : " votes");
+        wrap.hidden = false;
+      }
+      function refresh() {
+        renderResults(lget());
+        fetch(POLL_API + "?champ=1", { cache: "no-store" }).then(function (r) { return r.ok ? r.json() : null; })
+          .then(function (d) { if (d && d.configured !== false && d.teams) renderResults(d.teams); }).catch(function () {});
+      }
+      function castVote(v) {
+        const t = lget(); t[v] = (t[v] || 0) + 1; lset(t);
+        try { localStorage.setItem(VKEY, v); } catch (e) {}
+        renderResults(t);
+        fetch(POLL_API, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ champ: 1, team: v }) })
+          .then(function (r) { return r.ok ? r.json() : null; })
+          .then(function (d) { if (d && d.configured !== false && d.teams) renderResults(d.teams); }).catch(function () {});
+      }
+
+      function lockSelect(v) { sel.value = v; sel.disabled = true; sel.classList.add("is-locked"); }
+      function show(v) { $("champ-saved").hidden = false; $("champ-saved").textContent = "Your pick: " + (nm[v] || v) + " — locked in 🔒"; const b = $("champ-share"); b.hidden = false; b.dataset.text = "My #catwifhat World Cup champion: " + (nm[v] || v) + " 🏆🐱\n$WIF, but on $USDC\ncatwifusdc.com"; }
+      try { const s = voted() || localStorage.getItem(KEY); if (s) { lockSelect(s); show(s); } } catch (e) {}
+      refresh();
+      sel.addEventListener("change", function () {
+        if (!sel.value || voted()) return;
+        try { localStorage.setItem(KEY, sel.value); } catch (e) {}
+        lockSelect(sel.value); show(sel.value);
+        castVote(sel.value);
+        if (window.__wifToast) window.__wifToast("Champion locked 🏆 — vote counted");
+      });
       $("champ-share").addEventListener("click", function () { const t = $("champ-share").dataset.text || ""; const u = "https://twitter.com/intent/tweet?text=" + encodeURIComponent(t); if (navigator.share) navigator.share({ text: t }).catch(function () { window.open(u, "_blank", "noopener"); }); else window.open(u, "_blank", "noopener"); });
     })();
 
@@ -230,6 +277,7 @@
       return { tt: tt, min: min, name: who[0] || "", icon: iconFor(tt), side: tid === homeId ? "home" : (tid === awayId ? "away" : "") };
     }).filter(function (e) { return isKey(e.tt) && e.min; });
     renderPlays(s.home, s.away, hC, aC, events);
+    renderVenue(summary);
     renderStats(summary, s.home, s.away, hC, aC);
     renderLineups(summary, s.home, s.away, hC, aC);
     const goals = events.filter(function (e) { return /goal/i.test(e.tt); }).length;
@@ -237,7 +285,7 @@
     prevGoals = goals;
     $("updated").textContent = "Updated " + fmtTime(new Date()) + " · auto-refreshing";
   }
-  function playLi(e, color) { const g = /goal/i.test(e.tt); return '<li class="play' + (g ? " play--goal" : "") + '" style="border-color:' + color + '"><span class="play__min" style="color:' + color + '">' + esc(e.min) + '</span><span class="play__icon">' + e.icon + '</span><span class="play__txt"><b>' + esc(e.name) + '</b> <span class="play__type">' + esc(e.tt) + "</span></span></li>"; }
+  function playLi(e, color) { const g = /goal/i.test(e.tt); return '<li class="play' + (g ? " play--goal" : "") + '" style="border-color:' + color + '"><span class="play__min" style="color:' + color + '">' + esc(e.min) + '</span><span class="play__icon">' + e.icon + '</span><span class="play__txt"><b title="' + esc(e.name) + '">' + esc(lastName(e.name)) + '</b><span class="play__type">' + esc(e.tt) + "</span></span></li>"; }
   function colHead(c, color) { const im = teamImg(c); return '<img class="plays__badge' + (im.isCat ? "" : " plays__badge--flag") + '" src="' + esc(im.src) + '" alt=""/><span class="plays__team">' + esc((c.team || {}).displayName || "") + "</span>"; }
   function renderPlays(home, away, hC, aC, events) {
     $("plays-home-head").innerHTML = colHead(home, hC); $("plays-away-head").innerHTML = colHead(away, aC);
@@ -245,6 +293,17 @@
     const hl = events.filter(function (e) { return e.side === "home"; }), al = events.filter(function (e) { return e.side === "away"; });
     $("plays-home-list").innerHTML = hl.length ? hl.map(function (e) { return playLi(e, hC); }).join("") : '<li class="plays__empty">—</li>';
     $("plays-away-list").innerHTML = al.length ? al.map(function (e) { return playLi(e, aC); }).join("") : '<li class="plays__empty">—</li>';
+  }
+  function renderVenue(summary) {
+    const el = $("sb-venue"); if (!el) return;
+    let v = ((summary.gameInfo || {}).venue) || (((summary.header || {}).competitions || [])[0] || {}).venue || {};
+    const name = v.fullName || v.displayName || "";
+    const ad = v.address || {};
+    const where = [ad.city, ad.state || ad.country].filter(Boolean).join(", ");
+    const txt = [name, where].filter(Boolean).join(" · ");
+    if (!txt) { el.hidden = true; return; }
+    el.innerHTML = '<span class="scoreboard__pin" aria-hidden="true">📍</span> ' + esc(txt);
+    el.hidden = false;
   }
   const STAT_ROWS = [{ name: "totalShots", label: "Shots" }, { name: "shotsOnTarget", label: "On target" }, { name: "wonCorners", label: "Corners" }, { name: "foulsCommitted", label: "Fouls" }];
   function statMap(t) { const m = {}; (t.statistics || []).forEach(function (s) { m[s.name] = s.displayValue; }); return m; }
@@ -265,10 +324,11 @@
     const hr = byId((home.team || {}).id) || ros[0], ar = byId((away.team || {}).id) || ros[1];
     const xi = function (r) { return (r.roster || []).filter(function (p) { return p.starter; }); };
     if (!xi(hr).length && !xi(ar).length) { wrap.hidden = true; return; }
-    const fmt = function (r) { return r.formation ? "(" + r.formation + ")" : ""; };
-    const list = function (r) { return xi(r).map(function (p) { return "<li><span class=\"lineups__pos\">" + esc((p.position || {}).abbreviation || "") + "</span><span class=\"lineups__num\">" + esc(p.jersey || "") + "</span> " + esc((p.athlete || {}).displayName || "") + "</li>"; }).join(""); };
-    $("lineup-home-head").innerHTML = "<span style=\"color:" + hC + "\">●</span> " + esc((home.team || {}).displayName || "") + " <span class=\"whoyougot__hint\">" + fmt(hr) + "</span>";
-    $("lineup-away-head").innerHTML = "<span style=\"color:" + aC + "\">●</span> " + esc((away.team || {}).displayName || "") + " <span class=\"whoyougot__hint\">" + fmt(ar) + "</span>";
+    const fmt = function (r) { return r.formation ? '<span class="lineups__form">' + esc(r.formation) + "</span>" : ""; };
+    const head = function (team, color, r) { return '<span class="lineups__dot" style="color:' + color + '">●</span><span class="lineups__teamname">' + esc((team || {}).displayName || "") + "</span>" + fmt(r); };
+    const list = function (r) { return xi(r).map(function (p) { return '<li><span class="lineups__pos">' + esc((p.position || {}).abbreviation || "") + '</span><span class="lineups__num">' + esc(p.jersey || "") + '</span><span class="lineups__nm">' + esc((p.athlete || {}).displayName || "") + "</span></li>"; }).join(""); };
+    $("lineup-home-head").innerHTML = head(home.team, hC, hr);
+    $("lineup-away-head").innerHTML = head(away.team, aC, ar);
     $("lineup-home").innerHTML = list(hr) || "<li class=\"plays__empty\">TBD</li>"; $("lineup-away").innerHTML = list(ar) || "<li class=\"plays__empty\">TBD</li>";
     wrap.hidden = false;
   }
@@ -328,25 +388,46 @@
     });
   })();
 
-  function refreshPoll(id) { fetch(POLL_API + "?event=" + encodeURIComponent(id), { cache: "no-store" }).then(function (r) { return r.ok ? r.json() : null; }).then(renderPoll).catch(function () { renderPoll(null); }); }
+  // Local fallback so results always show instantly (X-poll style), even if
+  // the global backend isn't reachable. Server counts override when available.
+  function localKey(id) { return "wif-localpoll-" + id; }
+  function localTally(id) { try { return JSON.parse(localStorage.getItem(localKey(id))) || { home: 0, away: 0 }; } catch (e) { return { home: 0, away: 0 }; } }
+  function saveLocal(id, t) { try { localStorage.setItem(localKey(id), JSON.stringify(t)); } catch (e) {} }
+  function hasServer(d) { return d && d.configured !== false && (d.home != null || d.away != null); }
+
+  function refreshPoll(id) {
+    renderPoll(localTally(id));   // show something immediately
+    fetch(POLL_API + "?event=" + encodeURIComponent(id), { cache: "no-store" })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (d) { if (hasServer(d)) renderPoll(d); })
+      .catch(function () {});
+  }
   function votePoll(id, side) {
+    // 1) optimistic: count locally + reveal results right away
+    const t = localTally(id); t[side] = (t[side] || 0) + 1; saveLocal(id, t);
+    try { localStorage.setItem(votedKey(id), side); } catch (e) {}
+    const submit = $("poll-submit"); if (submit) submit.hidden = true;
+    renderPoll(t);
+    const poll = $("poll"); if (poll && poll.scrollIntoView) try { poll.scrollIntoView({ behavior: "smooth", block: "center" }); } catch (e) {}
+    if (window.__wifToast) window.__wifToast("Vote counted! 🐱");
+    // 2) reconcile with the global tally in the background
     fetch(POLL_API, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ event: id, side: side }) })
       .then(function (r) { return r.ok ? r.json() : null; })
-      .then(function (d) {
-        const submit = $("poll-submit");
-        if (!d || d.configured === false || (d.home == null && d.away == null)) {
-          if (submit) { submit.disabled = false; submit.textContent = "Submit global vote"; }
-          if (window.__wifToast) window.__wifToast("Global voting isn't live yet — try again soon");
-          return;
-        }
-        try { localStorage.setItem(votedKey(id), side); } catch (e) {}
-        if (submit) submit.hidden = true;
-        renderPoll(d);
-        if (window.__wifToast) window.__wifToast("Vote counted! 🐱");
-      })
-      .catch(function () { const submit = $("poll-submit"); if (submit) { submit.disabled = false; submit.textContent = "Submit global vote"; } if (window.__wifToast) window.__wifToast("Couldn't reach the poll — try again"); });
+      .then(function (d) { if (hasServer(d)) renderPoll(d); })
+      .catch(function () {});
   }
-  function renderPoll(d) { const w = $("poll"); if (!w) return; if (!d || (d.home == null && d.away == null)) { w.hidden = true; return; } const h = +d.home || 0, a = +d.away || 0, tot = h + a, hp = tot ? Math.round(h / tot * 100) : 50; $("poll-home-fill").style.width = hp + "%"; $("poll-away-fill").style.width = (100 - hp) + "%"; $("poll-home-pct").textContent = hp + "%"; $("poll-away-pct").textContent = (100 - hp) + "%"; $("poll-total").textContent = tot.toLocaleString() + (tot === 1 ? " vote" : " votes"); w.hidden = false; }
+  function renderPoll(d) {
+    const w = $("poll"); if (!w) return;
+    const h = +(d && d.home) || 0, a = +(d && d.away) || 0, tot = h + a, hp = tot ? Math.round(h / tot * 100) : 50;
+    $("poll-home-fill").style.width = hp + "%"; $("poll-away-fill").style.width = (100 - hp) + "%";
+    $("poll-home-pct").textContent = hp + "%"; $("poll-away-pct").textContent = (100 - hp) + "%";
+    $("poll-total").textContent = tot.toLocaleString() + (tot === 1 ? " vote" : " votes");
+    // emphasize the side this device picked
+    let mine = null; try { mine = localStorage.getItem(votedKey(EVENT_ID)) || localStorage.getItem("wif-pick-" + EVENT_ID); } catch (e) {}
+    $("poll-home-pct").classList.toggle("poll__pct--mine", mine === "home");
+    $("poll-away-pct").classList.toggle("poll__pct--mine", mine === "away");
+    w.hidden = false;
+  }
 
   /* share card */
   function preloadShareImgs(ev) { const s = sides(ev);[["home", s.home], ["away", s.away]].forEach(function (p) { const im = teamImg(p[1]); if (!im.src) { shareImgs[p[0]] = null; return; } const img = new Image(); img.crossOrigin = "anonymous"; img.referrerPolicy = "no-referrer"; img.src = im.src; shareImgs[p[0]] = { img: img, isCat: im.isCat }; }); }

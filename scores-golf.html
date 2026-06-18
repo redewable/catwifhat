@@ -3,18 +3,18 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>catwifhat — NBA Champions</title>
-  <meta name="description" content="Congratulations to the NBA Finals Champions, the New York Knicks — catwifhat style. 🐱🏀" />
+  <title>catwifhat — PGA Tour Leaderboard</title>
+  <meta name="description" content="Live PGA Tour leaderboard — the U.S. Open, catwifhat style. Auto-updating scores, every player, every round." />
   <meta name="theme-color" content="#2E5FD8" />
   <link rel="icon" type="image/png" href="favicon.png" />
   <link rel="apple-touch-icon" href="apple-touch-icon.png" />
   <meta property="og:type" content="website" />
-  <meta property="og:url" content="https://www.catwifusdc.com/scores-nba.html" />
-  <meta property="og:title" content="catwifhat — NBA Champions" />
-  <meta property="og:description" content="Congratulations to the NBA Finals Champions — the New York Knicks." />
+  <meta property="og:url" content="https://www.catwifusdc.com/scores-golf.html" />
+  <meta property="og:title" content="catwifhat — PGA Tour Leaderboard" />
+  <meta property="og:description" content="Live U.S. Open leaderboard, auto-updating — with cats." />
   <meta property="og:image" content="https://www.catwifusdc.com/fifa-world-cat.jpg" />
   <meta name="twitter:card" content="summary_large_image" />
-
+  <meta name="twitter:image" content="https://www.catwifusdc.com/fifa-world-cat.jpg" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@600;700;800;900&family=Hanken+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
@@ -25,7 +25,6 @@
   <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
     <symbol id="ico-x" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" /></symbol>
     <symbol id="ico-tg" viewBox="0 0 24 24"><path d="M21.94 4.78c.28-1.12-.42-1.63-1.15-1.3L4.82 9.64c-1.09.44-1.08 1.05-.2 1.3l4.1 1.28 1.6 5.13c.2.55.36.76.75.76.38 0 .55-.18.76-.4l1.92-1.86 3.98 2.94c.73.4 1.26.2 1.45-.68l2.62-12.34zm-5.1 3.07L9.4 12.5c-.37.23-.7.36-.83.78l-.28 4.23c-.04.4-.2.42-.4.42l.28-4.23 7.68-6.92c.34-.31-.07-.46-.52-.19z" /></symbol>
-    <symbol id="ic-trophy" viewBox="0 0 24 24"><path fill="currentColor" d="M18 2H6v2H2v4a4 4 0 0 0 4 4 6 6 0 0 0 5 4.9V21H8v2h8v-2h-3v-4.1A6 6 0 0 0 18 12a4 4 0 0 0 4-4V4h-4V2zM6 10a2 2 0 0 1-2-2V6h2v4zm14-2a2 2 0 0 1-2 2V6h2v2z"/></symbol>
   </svg>
 
   <header class="nav" id="top">
@@ -50,23 +49,24 @@
     <div class="section__wrap">
       <a class="scores__back" href="scores.html">‹ All sports</a>
 
-      <div class="champs reveal">
-        <span class="champs__badge"><img class="emo emo--lg" src="acc-trophy.webp" alt="" /> NBA Finals Champions</span>
-        <h1 class="champs__title">Congratulations to the<br /><span class="champs__team">New York Knicks</span></h1>
-        <p class="champs__sub">2026 NBA Champions. The litter salutes you. <img class="emo" src="icon-cat.webp" alt="cat" /></p>
-
-        <figure class="champs__cat">
-          <img id="champ-cat-img" src="knicks-cat.webp" alt="New York Knicks catwifhat"
-               onerror="this.style.display='none';document.getElementById('champ-cat-fallback').hidden=false;" />
-          <div class="champs__placeholder" id="champ-cat-fallback" hidden>
-            <img class="emo emo--xl" src="acc-trophy.webp" alt="" />
-            <span>Knicks cat dropping soon 🎨</span>
-          </div>
-          <figcaption>
-            <a class="btn btn--ginger" id="champ-cat-dl" href="knicks-cat.JPG" download="knicks-catwifhat-pfp.jpg">Download PFP</a>
-          </figcaption>
-        </figure>
+      <div class="golfhead reveal">
+        <span class="golfhead__badge" id="golf-badge"><span class="livedot" id="golf-live" hidden></span> <span id="golf-state">Loading…</span></span>
+        <h1 class="scores__title" id="golf-title">PGA Tour</h1>
+        <p class="scores__sub" id="golf-meta">Live leaderboard, auto-updating. <img class="emo" src="icon-cat.webp" alt="cat" /></p>
+        <p class="golfhead__venue" id="golf-venue" hidden></p>
       </div>
+
+      <div class="lbrd reveal in" id="golf-board">
+        <div class="lbrd__head">
+          <span class="lbrd__c lbrd__c--pos">Pos</span>
+          <span class="lbrd__c lbrd__c--player">Player</span>
+          <span class="lbrd__c lbrd__c--num">Today</span>
+          <span class="lbrd__c lbrd__c--num">Thru</span>
+          <span class="lbrd__c lbrd__c--num lbrd__c--total">Total</span>
+        </div>
+        <div class="lbrd__rows" id="golf-rows"><p class="matches__empty">Loading leaderboard…</p></div>
+      </div>
+      <p class="scores__note" id="golf-updated"></p>
     </div>
   </section>
 
@@ -75,15 +75,16 @@
       <div class="footer__socials">
         <a href="https://x.com/catwifusdc" target="_blank" rel="noopener"><svg class="ico" aria-hidden="true"><use href="#ico-x" /></svg></a>
         <a href="https://t.me/catwifhattheportal" target="_blank" rel="noopener"><svg class="ico" aria-hidden="true"><use href="#ico-tg" /></svg> Telegram</a>
-        <a href="index.html">Home</a>
+        <a href="scores.html">All sports</a>
       </div>
-      <p class="footer__disclaimer">
-        catwifhat ($WIF) is an independent meme project, not affiliated with the NBA, the New York Knicks, FIFA, ESPN, dogwifhat, or any team. Nothing here is financial advice.
-      </p>
+      <p class="footer__disclaimer">Scores are sourced live from a public sports feed and provided for fun. catwifhat ($WIF) is an independent meme project, not affiliated with the PGA Tour, the USGA, ESPN, dogwifhat, or any player. Nothing here is financial advice.</p>
       <p class="footer__copy">© 2026 catwifhat. <img class="emo" src="icon-cat.webp" alt="cat" /></p>
     </div>
   </footer>
 
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
   <script src="main.js?v=17"></script>
+  <script src="scores-golf.js?v=1"></script>
 </body>
 </html>
