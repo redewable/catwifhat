@@ -12,8 +12,9 @@
    ============================================================ */
 
 function cleanEnv(v) { return v == null ? v : String(v).trim().replace(/^[A-Za-z_][A-Za-z0-9_]*=/, "").replace(/^["']|["']$/g, "").trim(); }
-const SB_URL = cleanEnv(process.env.SUPABASE_URL);
-const SB_KEY = cleanEnv(process.env.SUPABASE_SERVICE_ROLE_KEY);
+// Accept either our own names or the NEXT_PUBLIC_* ones Supabase's Vercel integration sets.
+const SB_URL = cleanEnv(process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL);
+const SB_KEY = cleanEnv(process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_KEY);
 const TOKEN = cleanEnv(process.env.STATS_TOKEN);
 
 module.exports = async function handler(req, res) {
