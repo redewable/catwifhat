@@ -1554,6 +1554,18 @@ a.sportcard--feature:hover .sportcard__cta { transform: translateY(-1px); box-sh
 .champ__badge--ph { background: var(--cream-d); display: flex; align-items: center; justify-content: center; font-family: var(--font-display); font-weight: 800; font-size: 0.78rem; color: var(--ink); opacity: 0.7; }
 .champ__badge--flag { width: 26px; height: 18px; border-radius: 3px; object-fit: cover; box-shadow: 0 1px 3px rgba(0,0,0,0.15); align-self: center; }
 .gpoll { margin-bottom: 1.6rem; }
+
+/* PFP maker: rep-your-nation select */
+.pfp__nation {
+  -webkit-appearance: none; appearance: none; width: 100%;
+  font-family: var(--font-body); font-weight: 700; font-size: 0.95rem; color: var(--ink);
+  padding: 0.7rem 2.6rem 0.7rem 1rem; border-radius: 12px; border: 2px solid var(--cream-d);
+  background-color: var(--white);
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%231A1814' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'><path d='M6 9l6 6 6-6'/></svg>");
+  background-repeat: no-repeat; background-position: right 0.9rem center; background-size: 14px;
+  cursor: pointer; transition: border-color 0.15s ease; margin-top: 0.5rem;
+}
+.pfp__nation:hover, .pfp__nation:focus { border-color: var(--blue); outline: none; }
 .champ__barname { grid-row: 1; grid-column: 2; font-weight: 700; font-size: 0.9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .champ__you { font-size: 0.66rem; font-weight: 800; color: var(--ginger); text-transform: uppercase; }
 .champ__track { grid-row: 2; grid-column: 2; height: 9px; border-radius: 999px; background: var(--cream-d); overflow: hidden; }

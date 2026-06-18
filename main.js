@@ -558,6 +558,22 @@
     catImg.onload = function () { catReady = true; if (mode === "cat") renderCat(); updateDownload(); };
     catImg.src = "pfp-cat.webp";
 
+    // "Rep your nation" — swap the base cat to a World Cup country cat.
+    const nationSel = document.getElementById("pfp-nation");
+    const colorsGroup = document.querySelector(".pfp__colors");
+    if (nationSel) {
+      nationSel.addEventListener("change", function () {
+        const v = nationSel.value;
+        // nation cats ship with their own beanie — hide the recolor and reset the subject transform
+        hatColor = HAT_DEF;
+        if (colorsGroup) colorsGroup.style.display = v ? "none" : "";
+        catScale = 1; catX = 0; catY = 0; if (catSizeSlider) catSizeSlider.value = 100;
+        baseCat = null; catReady = false;
+        catImg.src = v ? (v + ".webp") : "pfp-cat.webp";
+        if (window.__wifToast) window.__wifToast(v ? "Repping " + nationSel.options[nationSel.selectedIndex].text + " 🐱" : "Back to the OG cat 🐱");
+      });
+    }
+
     // hat sticker (upload mode) — uses the standalone beanie
     hatImg.onload = function () { hatReady = true; buildTint(); if (mode === "upload") renderUpload(); };
     hatImg.src = "acc-beanie.webp";
@@ -594,6 +610,7 @@
         selectedAcc = null;
         bgKey = "original";
         catScale = 1; catX = 0; catY = 0; catSizeSlider.value = 100; baseCat = null;
+        if (nationSel && nationSel.value) { nationSel.value = ""; if (colorsGroup) colorsGroup.style.display = ""; catReady = false; catImg.src = "pfp-cat.webp"; }
         syncAccChips(); syncBgChips(); syncAccCtrls(); renderCat();
       } else {
         st = upState(); sizeSlider.value = 55; rotSlider.value = 0; buildTint(); renderUpload();

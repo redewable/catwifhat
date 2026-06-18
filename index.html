@@ -35,7 +35,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@600;700;800;900&family=Hanken+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
 
-  <link rel="stylesheet" href="styles.css?v=28" />
+  <link rel="stylesheet" href="styles.css?v=29" />
 </head>
 <body>
 
@@ -641,6 +641,32 @@
             </div>
           </div>
 
+          <!-- rep your nation: swap the base cat to a World Cup country cat -->
+          <div class="pfp__catonly" id="pfp-nation-group">
+            <span class="pfp__group-label">Rep your nation <img class="emo" src="icon-ball.webp?v=3" alt="" /></span>
+            <select id="pfp-nation" class="pfp__nation" aria-label="Pick a World Cup nation">
+              <option value="">Default catwifhat</option>
+              <option value="austria-cat">Austria</option>
+              <option value="bosnia-herzegovina-cat">Bosnia-Herzegovina</option>
+              <option value="canada-cat">Canada</option>
+              <option value="columbia-cat">Colombia</option>
+              <option value="congo-dr-cat">Congo DR</option>
+              <option value="croatia-cat">Croatia</option>
+              <option value="czechia-cat">Czechia</option>
+              <option value="england-cat">England</option>
+              <option value="ghana-cat">Ghana</option>
+              <option value="jordan-cat">Jordan</option>
+              <option value="mexico-cat">Mexico</option>
+              <option value="panama-cat">Panama</option>
+              <option value="portugal-cat">Portugal</option>
+              <option value="qatar-cat">Qatar</option>
+              <option value="south-africa-hat">South Africa</option>
+              <option value="south-korea-cat">South Korea</option>
+              <option value="swiss-cat">Switzerland</option>
+              <option value="uzbekistan-cat">Uzbekistan</option>
+            </select>
+          </div>
+
           <!-- accessories (cat mode only) -->
           <div class="pfp__catonly" id="pfp-acc-group">
             <span class="pfp__group-label">Drip</span>
@@ -911,6 +937,6 @@
   <!-- Copy toast -->
   <div class="toast" id="toast" role="status" aria-live="polite">copied!</div>
 
-  <script src="main.js?v=17"></script>
+  <script src="main.js?v=18"></script>
 </body>
 </html>
