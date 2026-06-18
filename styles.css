@@ -1171,7 +1171,9 @@ a { color: inherit; text-decoration: none; }
 .team { display: flex; flex-direction: column; align-items: center; gap: 0.7rem; min-width: 0; }
 .team__cat {
   width: clamp(78px, 22vw, 132px);
-  height: clamp(78px, 22vw, 132px);
+  max-width: 100%;
+  aspect-ratio: 1 / 1;
+  height: auto;
   border-radius: 50%;
   object-fit: cover;
   object-position: center top;
@@ -1298,7 +1300,12 @@ a { color: inherit; text-decoration: none; }
 .pick.is-picked .pick__choose { background: var(--ginger); color: var(--white); }
 
 @media (max-width: 560px) {
-  .scoreboard__row { gap: 0.3rem; }
+  .scoreboard { padding: 1.1rem 0.8rem; }
+  .scoreboard__row { gap: 0.35rem; align-items: start; }
+  .scoreboard__center { padding-top: 0.3rem; min-width: 0; }
+  .scoreboard__status { white-space: normal; text-align: center; line-height: 1.2; font-size: 0.78rem; padding: 0.35rem 0.7rem; }
+  .team { gap: 0.5rem; }
+  .team__name { font-size: 0.92rem; line-height: 1.15; }
   .pick figcaption { flex-direction: column; align-items: flex-start; }
   .pick__dl { width: 100%; text-align: center; }
 }
