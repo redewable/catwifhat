@@ -244,9 +244,10 @@
       wallet:   { src: "acc-wallet.webp",   label: "Wallet",      cx: 0.76, cy: 0.93,  w: 0.22, group: "wallet" },
       money:    { src: "acc-money.webp",    label: "Money bag",   cx: 0.24, cy: 0.93,  w: 0.24, group: "money" },
       trophy:   { src: "acc-trophy.webp",   label: "Trophy",      cx: 0.50, cy: 0.92,  w: 0.18, group: "trophy" },
+      ball:     { src: "icon-ball.webp?v=3", label: "Soccer ball", cx: 0.74, cy: 0.86, w: 0.24, group: "ball" },
     };
     // Draw order (back to front). Halo behind the head reads better; chain on chest; props on top.
-    const ACC_ORDER = ["halo", "chain", "aviators", "thug", "lasers", "wallet", "money", "trophy"];
+    const ACC_ORDER = ["halo", "chain", "aviators", "thug", "lasers", "wallet", "money", "trophy", "ball"];
     const BGS = {
       original: { src: "bg-original.jpg", label: "Original" },
       none:     { src: null,             label: "None" },
@@ -258,7 +259,7 @@
     let hatColor = HAT_DEF;
     let bgKey = "original";
     // active accessory state: one per group
-    const active = { eyes: null, chain: false, halo: false, wallet: false, money: false, trophy: false };
+    const active = { eyes: null, chain: false, halo: false, wallet: false, money: false, trophy: false, ball: false };
     // per-accessory transform {cx, cy, w} — starts at the default, then user-adjustable
     const accT = {};
     let selectedAcc = null; // accessory currently targeted by the size slider / drag
@@ -628,7 +629,7 @@
       });
       if (mode === "cat") {
         active.eyes = null; active.chain = false; active.halo = false;
-        active.wallet = false; active.money = false; active.trophy = false;
+        active.wallet = false; active.money = false; active.trophy = false; active.ball = false;
         Object.keys(accT).forEach(function (k) { delete accT[k]; }); // restore default sizes/positions
         selectedAcc = null;
         bgKey = "original";
@@ -872,6 +873,7 @@
       active.wallet = Math.random() < 0.25;
       active.money = Math.random() < 0.25;
       active.trophy = Math.random() < 0.2;
+      active.ball = Math.random() < 0.25;
       Object.keys(accT).forEach(function (k) { delete accT[k]; }); // clean default placements
       selectedAcc = null;
       bgKey = pick(Object.keys(BGS));
