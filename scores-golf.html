@@ -18,7 +18,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@600;700;800;900&family=Hanken+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css?v=27" />
+  <link rel="stylesheet" href="styles.css?v=28" />
 </head>
 <body>
 
@@ -59,6 +59,21 @@
           </div>
         </div>
         <p class="golfhead__venue" id="golf-venue" hidden></p>
+        <div class="golfcourse" id="golf-course" hidden></div>
+      </div>
+
+      <div class="gpoll reveal" id="gpoll" hidden>
+        <h2 class="scores__h2">Call the winner <img class="emo" src="acc-trophy.webp" alt="trophy" /></h2>
+        <p class="champ__sub">Who lifts the trophy? Lock your pick &amp; rep it.</p>
+        <div class="champ__row">
+          <select id="gpoll-select" class="champ__select" aria-label="Pick the tournament winner"><option value="">Pick a player…</option></select>
+          <button class="btn btn--blue champ__share" id="gpoll-share" type="button" hidden>Share <img class="emo" src="acc-trophy.webp" alt="" /></button>
+        </div>
+        <p class="champ__saved" id="gpoll-saved" hidden></p>
+        <div class="champ__results" id="gpoll-results" hidden>
+          <div class="champ__resultshead">Who the litter's backing <span class="champ__total" id="gpoll-total"></span></div>
+          <ol class="champ__bars" id="gpoll-bars"></ol>
+        </div>
       </div>
 
       <div class="lbrd reveal in" id="golf-board">
@@ -90,6 +105,6 @@
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
   <script src="main.js?v=17"></script>
-  <script src="scores-golf.js?v=3"></script>
+  <script src="scores-golf.js?v=6"></script>
 </body>
 </html>

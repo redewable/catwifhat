@@ -47,11 +47,12 @@ module.exports = async function handler(req, res) {
   // Not configured → tell the client to fall back to a local tally, don't error.
   if (!URL || !TOKEN) { res.status(200).json({ configured: false }); return; }
 
-  // ---- Champion tally (global hash of team → votes) ----
+  // ---- Champion tally (global hash of team → votes), namespaced ----
   const isChamp = (req.query && req.query.champ != null) || body.champ != null;
   if (isChamp) {
     try {
-      const HKEY = "champ:wc";
+      const ns = sanitize((req.query && req.query.ns) || body.ns) || "wc";
+      const HKEY = "champ:" + ns;
       if (req.method === "POST") {
         const team = sanitize(body.team);
         if (!team) { res.status(400).json({ error: "missing team" }); return; }

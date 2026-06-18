@@ -1552,6 +1552,8 @@ a.sportcard--feature:hover .sportcard__cta { transform: translateY(-1px); box-sh
 .champ__bar { display: grid; grid-template-columns: 26px minmax(0, 1fr) 2.6rem; grid-template-rows: auto auto; column-gap: 0.6rem; row-gap: 0.25rem; align-items: center; }
 .champ__badge { grid-row: 1 / span 2; grid-column: 1; width: 26px; height: 26px; border-radius: 50%; object-fit: cover; object-position: center top; background: var(--cream); }
 .champ__badge--ph { background: var(--cream-d); display: flex; align-items: center; justify-content: center; font-family: var(--font-display); font-weight: 800; font-size: 0.78rem; color: var(--ink); opacity: 0.7; }
+.champ__badge--flag { width: 26px; height: 18px; border-radius: 3px; object-fit: cover; box-shadow: 0 1px 3px rgba(0,0,0,0.15); align-self: center; }
+.gpoll { margin-bottom: 1.6rem; }
 .champ__barname { grid-row: 1; grid-column: 2; font-weight: 700; font-size: 0.9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .champ__you { font-size: 0.66rem; font-weight: 800; color: var(--ginger); text-transform: uppercase; }
 .champ__track { grid-row: 2; grid-column: 2; height: 9px; border-radius: 999px; background: var(--cream-d); overflow: hidden; }
@@ -1665,6 +1667,15 @@ a.sportcard--feature:hover .sportcard__cta { transform: translateY(-1px); box-sh
 .golfhead__cat { width: clamp(54px, 14vw, 76px); height: clamp(54px, 14vw, 76px); border-radius: 50%; object-fit: cover; object-position: center top; background: var(--cream); border: 3px solid var(--ginger); box-shadow: var(--shadow); flex: none; }
 .golfhead__hd .scores__title { margin: 0; }
 .golfhead__venue { font-weight: 700; opacity: 0.65; margin: 0.6rem 0 0; font-size: 0.92rem; }
+.golfcourse { margin-top: 0.8rem; }
+.golfcourse__line { font-weight: 600; font-size: 0.95rem; }
+.golfcourse__line strong { font-weight: 800; }
+.golfcourse__pin { opacity: 0.7; }
+.golfcourse__facts { display: flex; flex-wrap: wrap; gap: 0.4rem 0.5rem; margin-top: 0.5rem; }
+.golfcourse__facts span {
+  font-weight: 700; font-size: 0.74rem; background: var(--white); color: var(--ink);
+  border: 1.5px solid var(--cream-d); border-radius: 999px; padding: 0.22rem 0.6rem;
+}
 
 .lbrd { background: var(--white); border-radius: 16px; box-shadow: var(--shadow); overflow: hidden; }
 .lbrd__head, .lbrd__row {
