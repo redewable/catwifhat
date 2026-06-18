@@ -880,3 +880,39 @@
     });
   }
 })();
+
+/* ============================================================
+   Per-page view counter — shows a live count in the sub-footer.
+   Counts once per browser session per page; degrades silently if
+   the /api/views backend (Upstash Redis) isn't configured.
+   ============================================================ */
+(function viewCounter() {
+  function slugify() {
+    var file = (location.pathname.split("/").pop() || "index.html").toLowerCase();
+    var slug = file.replace(/\.html$/, "");
+    if (!slug || slug === "index") slug = "home";
+    slug = slug.replace(/[^a-z0-9_-]/g, "").slice(0, 40);
+    return slug || "home";
+  }
+  function show(n) {
+    var el = document.getElementById("viewcount");
+    if (!el) {
+      el = document.createElement("p");
+      el.id = "viewcount";
+      el.className = "subfooter";
+      var wrap = document.querySelector(".footer .section__wrap") || document.querySelector(".footer") || document.body;
+      wrap.appendChild(el);
+    }
+    el.innerHTML = '🐾 <strong>' + Number(n).toLocaleString() + "</strong> paws have wandered through this page";
+    el.hidden = false;
+  }
+  try {
+    var slug = slugify();
+    var hit = false;
+    try { var k = "wif-viewed-" + slug; if (!sessionStorage.getItem(k)) { hit = true; sessionStorage.setItem(k, "1"); } } catch (e) { hit = true; }
+    fetch("/api/views?page=" + encodeURIComponent(slug) + (hit ? "&hit=1" : ""), { cache: "no-store" })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (d) { if (d && d.configured !== false && d.views != null) show(d.views); })
+      .catch(function () {});
+  } catch (e) {}
+})();
