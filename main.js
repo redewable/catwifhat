@@ -236,23 +236,24 @@
     // Accessories: cx/cy = center as fraction of canvas, w = width as fraction of canvas.
     // group = mutually-exclusive bucket (only one "eyes" accessory at a time).
     const ACCS = {
-      aviators: { src: "acc-aviators.webp", label: "Aviators",   cx: 0.50, cy: 0.628, w: 0.50, group: "eyes" },
-      thug:     { src: "acc-thug.webp",     label: "Thug shades", cx: 0.50, cy: 0.628, w: 0.52, group: "eyes" },
-      lasers:   { src: "acc-lasers.webp",   label: "Laser eyes",  cx: 0.50, cy: 0.632, w: 0.86, group: "eyes" },
-      chain:    { src: "acc-chain.webp",    label: "Gold chain",  cx: 0.50, cy: 0.900, w: 0.58, group: "chain" },
-      halo:     { src: "acc-halo.webp",     label: "Halo",        cx: 0.50, cy: 0.115, w: 0.46, group: "halo" },
-      wallet:   { src: "acc-wallet.webp",   label: "Wallet",      cx: 0.76, cy: 0.93,  w: 0.22, group: "wallet" },
-      money:    { src: "acc-money.webp",    label: "Money bag",   cx: 0.24, cy: 0.93,  w: 0.24, group: "money" },
-      trophy:   { src: "acc-trophy.webp",   label: "Trophy",      cx: 0.50, cy: 0.92,  w: 0.18, group: "trophy" },
-      ball:     { src: "icon-ball.webp?v=3", label: "Soccer ball", cx: 0.74, cy: 0.86, w: 0.24, group: "ball" },
+      aviators: { src: "/assets/acc-aviators.webp", label: "Aviators",   cx: 0.50, cy: 0.628, w: 0.50, group: "eyes" },
+      thug:     { src: "/assets/acc-thug.webp",     label: "Thug shades", cx: 0.50, cy: 0.628, w: 0.52, group: "eyes" },
+      lasers:   { src: "/assets/acc-lasers.webp",   label: "Laser eyes",  cx: 0.50, cy: 0.632, w: 0.86, group: "eyes" },
+      chain:    { src: "/assets/acc-chain.webp",    label: "Gold chain",  cx: 0.50, cy: 0.900, w: 0.58, group: "chain" },
+      halo:     { src: "/assets/acc-halo.webp",     label: "Halo",        cx: 0.50, cy: 0.115, w: 0.46, group: "halo" },
+      wallet:   { src: "/assets/acc-wallet.webp",   label: "Wallet",      cx: 0.76, cy: 0.93,  w: 0.22, group: "wallet" },
+      money:    { src: "/assets/acc-money.webp",    label: "Money bag",   cx: 0.24, cy: 0.93,  w: 0.24, group: "money" },
+      trophy:   { src: "/assets/acc-trophy.webp",   label: "Trophy",      cx: 0.50, cy: 0.92,  w: 0.18, group: "trophy" },
+      ball:     { src: "/assets/icon-ball.webp?v=3", label: "Soccer ball", cx: 0.74, cy: 0.86, w: 0.24, group: "ball" },
     };
     // Draw order (back to front). Halo behind the head reads better; chain on chest; props on top.
     const ACC_ORDER = ["halo", "chain", "aviators", "thug", "lasers", "wallet", "money", "trophy", "ball"];
     const BGS = {
-      original: { src: "bg-original.jpg", label: "Original" },
+      original: { src: "/assets/bg-original.jpg", label: "Original" },
       none:     { src: null,             label: "None" },
-      mars:     { src: "bg-mars.jpg",     label: "Mars" },
-      moon:     { src: "bg-moon.jpg",     label: "Moon" },
+      fifa:     { src: "/assets/fifa-pfp-background.png", label: "World Cup" },
+      mars:     { src: "/assets/bg-mars.jpg",     label: "Mars" },
+      moon:     { src: "/assets/bg-moon.jpg",     label: "Moon" },
     };
 
     let mode = "cat";
@@ -599,7 +600,7 @@
 
     // cat subject
     catImg.onload = function () { catReady = true; if (mode === "cat") renderCat(); updateDownload(); };
-    catImg.src = "pfp-cat.webp";
+    catImg.src = "/assets/pfp-cat.webp";
 
     // "Rep your nation" — swap the base cat to a World Cup country cat.
     const nationSel = document.getElementById("pfp-nation");
@@ -612,14 +613,14 @@
         if (colorsGroup) colorsGroup.style.display = v ? "none" : "";
         catScale = 1; catX = 0; catY = 0; if (catSizeSlider) catSizeSlider.value = 100;
         baseCat = null; catReady = false;
-        catImg.src = v ? (v + ".webp") : "pfp-cat.webp";
+        catImg.src = v ? ("/assets/" + v + ".webp") : "/assets/pfp-cat.webp";
         if (window.__wifToast) window.__wifToast(v ? "Repping " + nationSel.options[nationSel.selectedIndex].text + " 🐱" : "Back to the OG cat 🐱");
       });
     }
 
     // hat sticker (upload mode) — uses the standalone beanie
     hatImg.onload = function () { hatReady = true; buildTint(); if (mode === "upload") renderUpload(); };
-    hatImg.src = "acc-beanie.webp";
+    hatImg.src = "/assets/acc-beanie.webp";
 
     // tabs + upload
     tabCat.addEventListener("click", function () { setMode("cat"); });
@@ -653,7 +654,7 @@
         selectedAcc = null;
         bgKey = "original";
         catScale = 1; catX = 0; catY = 0; catSizeSlider.value = 100; baseCat = null;
-        if (nationSel && nationSel.value) { nationSel.value = ""; if (colorsGroup) colorsGroup.style.display = ""; catReady = false; catImg.src = "pfp-cat.webp"; }
+        if (nationSel && nationSel.value) { nationSel.value = ""; if (colorsGroup) colorsGroup.style.display = ""; catReady = false; catImg.src = "/assets/pfp-cat.webp"; }
         syncAccChips(); syncBgChips(); syncAccCtrls(); renderCat();
       } else {
         st = upState(); sizeSlider.value = 55; rotSlider.value = 0; buildTint(); renderUpload();

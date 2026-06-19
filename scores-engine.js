@@ -33,19 +33,19 @@
   const PARTICLES = { de: 1, van: 1, von: 1, der: 1, den: 1, da: 1, di: 1, dos: 1, das: 1, del: 1, la: 1, le: 1, du: 1, bin: 1, al: 1, el: 1, mac: 1, mc: 1, st: 1, ten: 1, ter: 1 };
   function lastName(full) { full = String(full || "").trim(); if (!full) return ""; const p = full.split(/\s+/); if (p.length === 1) return full; let i = p.length - 1; if (i - 1 >= 1 && PARTICLES[p[i - 1].toLowerCase()]) i -= 1; return p.slice(i).join(" "); }
   function svgIc(id, extra) { return '<svg class="ic' + (extra ? " " + extra : "") + '" aria-hidden="true"><use href="#' + id + '"/></svg>'; }
-  function iconFor(t) { t = (t || "").toLowerCase(); if (t.indexOf("goal") > -1) return '<img class="ic-ball" src="icon-ball.webp?v=3" alt="goal" />'; if (t.indexOf("yellow") > -1) return svgIc("ic-card", "ic--yellow"); if (t.indexOf("red") > -1) return svgIc("ic-card", "ic--red"); if (t.indexOf("var") > -1) return svgIc("ic-var"); return "•"; }
+  function iconFor(t) { t = (t || "").toLowerCase(); if (t.indexOf("goal") > -1) return '<img class="ic-ball" src="/assets/icon-ball.webp?v=3" alt="goal" />'; if (t.indexOf("yellow") > -1) return svgIc("ic-card", "ic--yellow"); if (t.indexOf("red") > -1) return svgIc("ic-card", "ic--red"); if (t.indexOf("var") > -1) return svgIc("ic-var"); return "•"; }
   function isKey(t) { return /goal|yellow|red|penalt|var/i.test(t || ""); }
   function colorOf(team, fb) { const c = (team || {}).color; if (!c) return fb; const hex = "#" + String(c).replace("#", ""); const n = parseInt(hex.slice(1), 16); const lum = ((n >> 16 & 255) * 0.299 + (n >> 8 & 255) * 0.587 + (n & 255) * 0.114); return lum > 225 ? fb : hex; }
   function teamImg(competitor) {
     const team = competitor.team || {};
     const ab = team.abbreviation || "";
-    if (TEAM_CATS[ab]) return { src: TEAM_CATS[ab] + ".webp", isCat: true, base: TEAM_CATS[ab] };
+    if (TEAM_CATS[ab]) return { src: "/assets/" + TEAM_CATS[ab] + ".webp", isCat: true, base: TEAM_CATS[ab] };
     const logo = team.logo || ((team.logos || [])[0] || {}).href || "";
     return { src: logo, isCat: false, base: null };
   }
   function badgeFromTeam(team) {
     const ab = (team || {}).abbreviation || "";
-    if (TEAM_CATS[ab]) return { src: TEAM_CATS[ab] + ".webp", flag: false };
+    if (TEAM_CATS[ab]) return { src: "/assets/" + TEAM_CATS[ab] + ".webp", flag: false };
     return { src: (team || {}).logo || (((team || {}).logos || [])[0] || {}).href || "", flag: true };
   }
   function sides(ev) {
@@ -163,7 +163,7 @@
     function bktTeam(c, win, showScore) {
       const t = c.team || {}, ab = t.abbreviation || "", b = badgeFromTeam(t);
       const isCat = !!TEAM_CATS[ab];
-      const badge = isCat ? '<img class="bkt__badge" src="' + esc(TEAM_CATS[ab] + ".webp") + '" alt="" loading="lazy"/>'
+      const badge = isCat ? '<img class="bkt__badge" src="' + esc("/assets/" + TEAM_CATS[ab] + ".webp") + '" alt="" loading="lazy"/>'
         : (b.src ? '<img class="bkt__badge bkt__badge--flag" src="' + esc(b.src) + '" alt="" loading="lazy"/>' : '<span class="bkt__badge bkt__badge--tbd"></span>');
       const sc = (showScore && c.score != null && c.score !== "") ? c.score : "";
       return '<span class="bkt__team' + (win ? " is-win" : "") + '">' + badge + '<span class="bkt__ab">' + esc(ab || "TBD") + '</span><span class="bkt__sc">' + esc(sc) + "</span></span>";
@@ -187,7 +187,7 @@
       const fin = (bySlug["final"] || [])[0];
       let champ = '<span class="bkt__champname">TBD</span>';
       if (fin) { const fs = sides(fin), fst = (fs.status.type || {}).state; if (fst === "post") { const hs = parseFloat(fs.home.score), as = parseFloat(fs.away.score); const w = hs > as ? fs.home : fs.away; champ = bktTeam(w, true); } }
-      const cup = '<div class="bkt__col bkt__col--cup"><div class="bkt__colh">Champion</div><div class="bkt__cup"><img class="emo emo--lg" src="acc-trophy.webp" alt="" />' + champ + "</div></div>";
+      const cup = '<div class="bkt__col bkt__col--cup"><div class="bkt__colh">Champion</div><div class="bkt__cup"><img class="emo emo--lg" src="/assets/acc-trophy.webp" alt="" />' + champ + "</div></div>";
       const third = (bySlug["3rd-place-match"] || [])[0];
       let thirdHtml = "";
       if (third) thirdHtml = '<div class="bkt__third"><span class="bkt__thirdlabel">3rd-place match</span>' + bktMatch(third) + "</div>";
@@ -235,7 +235,7 @@
         const total = arr.reduce(function (s, x) { return s + x.n; }, 0), max = arr[0].n, mine = voted();
         bars.innerHTML = arr.slice(0, 10).map(function (x, i) {
           const pct = Math.round(x.n / total * 100), w = Math.max(6, Math.round(x.n / max * 100));
-          const badge = CATS[x.ab] ? '<img class="champ__badge" src="' + esc(CATS[x.ab] + ".webp") + '" alt="" loading="lazy"/>' : '<span class="champ__badge champ__badge--ph">' + (i + 1) + "</span>";
+          const badge = CATS[x.ab] ? '<img class="champ__badge" src="' + esc("/assets/" + CATS[x.ab] + ".webp") + '" alt="" loading="lazy"/>' : '<span class="champ__badge champ__badge--ph">' + (i + 1) + "</span>";
           return '<li class="champ__bar' + (x.ab === mine ? " is-mine" : "") + '">' + badge +
             '<span class="champ__barname">' + esc(nm[x.ab] || x.ab) + (x.ab === mine ? ' <span class="champ__you">✓ you</span>' : "") + "</span>" +
             '<span class="champ__track"><span class="champ__fill" style="width:' + w + '%"></span></span>' +
@@ -292,7 +292,7 @@
           if (navigator.canShare && navigator.canShare({ files: [file] })) navigator.share({ files: [file], text: shareText(v) }).then(function () { if (window.__wifToast) window.__wifToast("shared!"); }).catch(function () {});
           else { const link = document.createElement("a"); link.href = url; link.download = "catwifhat-champion.png"; document.body.appendChild(link); link.click(); link.remove(); if (window.__wifToast) window.__wifToast("Card saved — drop it on X!"); }
         }
-        const src = CATS[v] ? CATS[v] + ".webp" : "";
+        const src = CATS[v] ? "/assets/" + CATS[v] + ".webp" : "";
         if (src) { const im = new Image(); im.onload = function () { finish(im); }; im.onerror = function () { finish(null); }; im.src = src; } else finish(null);
       }
       $("champ-share").addEventListener("click", function () { const v = sel.value || voted(); if (!v) return; buildChampCard(v); });
@@ -419,7 +419,7 @@
     if (im.src) imgEl.src = im.src; imgEl.alt = name; imgEl.classList.toggle("is-flag", !im.isCat);
     $("pick-" + side + "-name").textContent = name;
     const dl = $("pick-" + side + "-dl"), soon = $("pick-" + side + "-soon");
-    if (im.isCat) { dl.hidden = false; soon.hidden = true; dl.href = im.base + ".png"; dl.setAttribute("download", im.base + "wifhat-pfp.png"); } else { dl.hidden = true; soon.hidden = false; }
+    if (im.isCat) { dl.hidden = false; soon.hidden = true; dl.href = "/assets/" + im.base + ".png"; dl.setAttribute("download", im.base + "wifhat-pfp.png"); } else { dl.hidden = true; soon.hidden = false; }
   }
   const POLL_API = "/api/poll";
   let pickedSide = null, sideHome = null, sideAway = null;

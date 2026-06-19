@@ -6,15 +6,15 @@
   <title>catwifhat — PGA Tour Leaderboard</title>
   <meta name="description" content="Live PGA Tour leaderboard — the U.S. Open, catwifhat style. Auto-updating scores, every player, every round." />
   <meta name="theme-color" content="#2E5FD8" />
-  <link rel="icon" type="image/png" href="favicon.png" />
-  <link rel="apple-touch-icon" href="apple-touch-icon.png" />
+  <link rel="icon" type="image/png" href="/assets/favicon.png" />
+  <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png" />
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://www.catwifusdc.com/scores-golf.html" />
   <meta property="og:title" content="catwifhat — PGA Tour Leaderboard" />
   <meta property="og:description" content="Live U.S. Open leaderboard, auto-updating — with cats." />
-  <meta property="og:image" content="https://www.catwifusdc.com/fifa-world-cat.jpg" />
+  <meta property="og:image" content="https://www.catwifusdc.com/assets/fifa-world-cat.jpg" />
   <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:image" content="https://www.catwifusdc.com/fifa-world-cat.jpg" />
+  <meta name="twitter:image" content="https://www.catwifusdc.com/assets/fifa-world-cat.jpg" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@600;700;800;900&family=Hanken+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
@@ -52,10 +52,10 @@
       <div class="golfhead reveal">
         <span class="golfhead__badge" id="golf-badge"><span class="livedot" id="golf-live" hidden></span> <span id="golf-state">Loading…</span></span>
         <div class="golfhead__hd">
-          <img class="golfhead__cat" src="pfp-cat.webp" alt="catwifhat" />
+          <img class="golfhead__cat" src="/assets/pfp-cat.webp" alt="catwifhat" />
           <div>
             <h1 class="scores__title" id="golf-title">PGA Tour</h1>
-            <p class="scores__sub" id="golf-meta">The major's live leaderboard — the litter's watching. <img class="emo" src="icon-cat.webp" alt="cat" /> Tap any player to open their scorecard.</p>
+            <p class="scores__sub" id="golf-meta">The major's live leaderboard — the litter's watching. <img class="emo" src="/assets/icon-cat.webp" alt="cat" /> Tap any player to open their scorecard.</p>
           </div>
         </div>
         <p class="golfhead__venue" id="golf-venue" hidden></p>
@@ -63,11 +63,11 @@
       </div>
 
       <div class="gpoll reveal" id="gpoll" hidden>
-        <h2 class="scores__h2">Call the winner <img class="emo" src="acc-trophy.webp" alt="trophy" /></h2>
+        <h2 class="scores__h2">Call the winner <img class="emo" src="/assets/acc-trophy.webp" alt="trophy" /></h2>
         <p class="champ__sub">Who lifts the trophy? Lock your pick &amp; rep it.</p>
         <div class="champ__row">
           <select id="gpoll-select" class="champ__select" aria-label="Pick the tournament winner"><option value="">Pick a player…</option></select>
-          <button class="btn btn--blue champ__share" id="gpoll-share" type="button" hidden>Share <img class="emo" src="acc-trophy.webp" alt="" /></button>
+          <button class="btn btn--blue champ__share" id="gpoll-share" type="button" hidden>Share <img class="emo" src="/assets/acc-trophy.webp" alt="" /></button>
         </div>
         <p class="champ__saved" id="gpoll-saved" hidden></p>
         <div class="champ__results" id="gpoll-results" hidden>
@@ -98,14 +98,14 @@
         <a href="scores.html">All sports</a>
       </div>
       <p class="footer__disclaimer">Scores are sourced live from a public sports feed and provided for fun. catwifhat ($WIF) is an independent meme project, not affiliated with the PGA Tour, the USGA, ESPN, dogwifhat, or any player. Nothing here is financial advice.</p>
-      <p class="footer__copy">© 2026 catwifhat. <img class="emo" src="icon-cat.webp" alt="cat" /></p>
+      <p class="footer__copy">© 2026 catwifhat. <img class="emo" src="/assets/icon-cat.webp" alt="cat" /></p>
     </div>
   </footer>
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-  <script src="main.js?v=23"></script>
-  <script src="scores-golf.js?v=7"></script>
+  <script src="main.js?v=24"></script>
+  <script src="scores-golf.js?v=8"></script>
   <script defer src="/_vercel/insights/script.js"></script>
   <script src="analytics.js?v=1"></script>
 </body>
